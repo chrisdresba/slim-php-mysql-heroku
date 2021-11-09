@@ -1,34 +1,25 @@
 <?php
 
-require_once './db/AccesoDatos.php';
-
-class Usuario
+class Encuesta
 {
-    public $idUsuario;
+    public $id;
     public $nombre;
     public $apellido;
     public $usuario;
     public $clave;
     public $tipo;
-    public $sector;
     public $fechaAlta;
     public $fechaBaja;
     public $estado;
+
 
     public function crearUsuario()
     {
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
         $consulta = $objAccesoDatos->prepararConsulta("INSERT INTO usuarios (usuario, clave) VALUES (:usuario, :clave)");
         $claveHash = password_hash($this->clave, PASSWORD_DEFAULT);
-        $consulta->bindValue(':nombre', $this->nombre, PDO::PARAM_STR);
-        $consulta->bindValue(':apellido', $this->apellido, PDO::PARAM_STR);
         $consulta->bindValue(':usuario', $this->usuario, PDO::PARAM_STR);
         $consulta->bindValue(':clave', $claveHash);
-        $consulta->bindValue(':tipo', $this->tipo, PDO::PARAM_STR);
-        $consulta->bindValue(':sector', $this->sector, PDO::PARAM_STR);
-        $consulta->bindValue(':fechaAlta', $this->fechaAlta, PDO::PARAM_STR);
-        $consulta->bindValue(':estado', $this->estado, PDO::PARAM_STR);
-
         $consulta->execute();
 
         return $objAccesoDatos->obtenerUltimoId();
@@ -37,11 +28,10 @@ class Usuario
     public static function obtenerTodos()
     {
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("SELECT id, nombre, apellido, tipo FROM usuarios");
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT id, usuario, clave FROM usuarios");
         $consulta->execute();
 
         return $consulta->fetchAll(PDO::FETCH_CLASS, 'Usuario');
     }
 
-    
 }

@@ -3,10 +3,10 @@
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
-require_once './models/Usuario.php';
+require_once './models/Mesa.php';
 require_once './db/AccesoDatos.php';
 
-class UsuarioController extends Usuario
+class MesaController extends Mesa
 {
   public function CargarUno(Request $request,Response $response, $args)
   {
@@ -14,20 +14,15 @@ class UsuarioController extends Usuario
 
     try {
 
-      if (isset($parametros['nombre']) && isset($parametros['apellido']) && isset($parametros['usuario']) && isset($parametros['clave']) && isset($parametros['tipo']) && isset($parametros['sector'])) {
-        $usr = new Usuario();
-
-        $usr->nombre = $parametros['nombre'];
-        $usr->apellido = $parametros['apellido'];
-        $usr->usuario = $parametros['usuario'];
-        $usr->clave = $parametros['clave'];
-        $usr->tipo = $parametros['tipo'];
-        $usr->sector = $parametros['sector'];
+      if (isset($parametros['codigo']) && isset($parametros['estado'])) {
+        $mesa = new Mesa();
+        $mesa->codigo = $parametros['codigo'];
+        $mesa->estado = $parametros['estado'];
         $fecha = new DateTime();
-        $usr->fechaAlta = $fecha->format('Y-m-d');
-        $usr->estado = "activo";
+        $mesa->fechaInicio = $fecha->format('Y-m-d');
+        $mesa->crearMesa();
 
-        $payload = json_encode(array("mensaje" => "Usuario creado con exito"));
+        $payload = json_encode(array("mensaje" => "Mesa creada con exito"));
       }
     } catch (Exception $ex) {
       $payload = json_encode(array("mensaje" => "Se produjo un error " . $ex->getMessage()));
@@ -41,8 +36,8 @@ class UsuarioController extends Usuario
   public function TraerTodos(Request $request,Response $response, $args)
   {
     try {
-      $lista = Usuario::obtenerTodos();
-      $payload = json_encode(array("listaUsuario" => $lista));
+      $lista = Mesa::obtenerTodos();
+      $payload = json_encode(array("listaMesas" => $lista));
     } catch (Exception $ex) {
       $payload = json_encode(array("mensaje" => "Se produjo un error " . $ex->getMessage()));
     }
