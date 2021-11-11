@@ -25,8 +25,9 @@ class UsuarioController extends Usuario
         $usr->sector = $parametros['sector'];
         $fecha = new DateTime();
         $usr->fechaAlta = $fecha->format('Y-m-d');
-        $usr->estado = "activo";
-
+        $usr->estado = "Activo";
+        $usr->crearUsuario();
+        
         $payload = json_encode(array("mensaje" => "Usuario creado con exito"));
       }
     } catch (Exception $ex) {

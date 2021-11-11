@@ -8,8 +8,10 @@ require_once './db/AccesoDatos.php';
 
 class ProductoController extends Producto
 {
-  public function CargarUno(Request $request,Response $response, $args)
+  public function CargarUno(Request $request, Response $response, $args)
   {
+    $parametros = $request->getParsedBody();
+
     try {
 
       if (isset($parametros['nombre']) && isset($parametros['seccion']) && isset($parametros['precio'])) {
@@ -21,9 +23,8 @@ class ProductoController extends Producto
         $producto->seccion = $parametros['seccion'];
         $fecha = new DateTime();
         $producto->fechaCarga = $fecha->format('Y-m-d');
-        $producto->precio = $parametros['precio'];
+        $producto->precio = intval($parametros['precio']);
         $producto->crearProductos();
-
         $payload = json_encode(array("mensaje" => "Producto creado con exito"));
       }
     } catch (Exception $ex) {
@@ -36,7 +37,7 @@ class ProductoController extends Producto
       ->withHeader('Content-Type', 'application/json');
   }
 
-  public function TraerTodos(Request $request,Response $response, $args)
+  public function TraerTodos(Request $request, Response $response, $args)
   {
     try {
       $lista = Producto::obtenerTodos();

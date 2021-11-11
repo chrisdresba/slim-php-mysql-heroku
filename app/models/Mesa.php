@@ -15,7 +15,7 @@ class Mesa
     {
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
         $consulta = $objAccesoDatos->prepararConsulta("INSERT INTO mesas (codigo, estado, fechaInicio) VALUES (:codigo, :estado, :fechaInicio)");
-        $consulta->bindValue(':codigo', $this->usuario, PDO::PARAM_STR);
+        $consulta->bindValue(':codigo', $this->codigo, PDO::PARAM_STR);
         $consulta->bindValue(':estado', $this->estado, PDO::PARAM_STR);
         $consulta->bindValue(':fechaInicio', $this->fechaInicio, PDO::PARAM_STR);
         $consulta->execute();
@@ -26,7 +26,7 @@ class Mesa
     public static function obtenerTodos()
     {
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("SELECT idMesa, codigo, estado FROM mesas");
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT idMesa, codigo, estado, fechaInicio FROM mesas");
         $consulta->execute();
 
         return $consulta->fetchAll(PDO::FETCH_CLASS, 'Mesa');

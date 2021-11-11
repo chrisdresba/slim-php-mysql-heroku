@@ -27,7 +27,7 @@ class Producto
     public static function obtenerTodos()
     {
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("SELECT nombre, seccion, precio FROM productos");
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT nombre, seccion, precio, fechaCarga FROM productos");
         $consulta->execute();
 
         return $consulta->fetchAll(PDO::FETCH_CLASS, 'Producto');

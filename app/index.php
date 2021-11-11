@@ -1,6 +1,5 @@
 <?php
-// Error Handling
-
+// Error Handling 
 error_reporting(-1);
 ini_set('display_errors', 1);
 
@@ -49,7 +48,7 @@ $app->group('/mesas', function (RouteCollectorProxy $group) {
 
 $app->group('/pedidos', function (RouteCollectorProxy $group) {
   $group->get('[/]', \PedidoController::class . ':TraerTodos');
-  $group->post('[/]', \PedidooController::class . ':CargarUno');
+  $group->post('[/]', \PedidoController::class . ':CargarUno');
 });
 
 $app->group('/productos', function (RouteCollectorProxy $group) {
@@ -63,6 +62,7 @@ $app->get('[/]', function (Request $request, Response $response) {
     return $response;
 
 });
+
 
 
 $app->run();

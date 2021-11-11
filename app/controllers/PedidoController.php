@@ -15,15 +15,17 @@ class PedidoController extends Pedido
 
     try {
 
-      if (isset($parametros['usuario']) && isset($parametros['producto']) && isset($parametros['mesa']) && isset($parametros['unidades']) && isset($parametros['nombre']) && isset($parametros['estado'])) {
+      if (isset($parametros['usuario']) && isset($parametros['producto']) && isset($parametros['mesa']) && isset($parametros['unidades']) && isset($parametros['nombre'])) {
         $pedido = new Pedido();
         $pedido->idUsuario = $parametros['usuario'];
         $pedido->idProducto = $parametros['producto'];
         $pedido->idMesa = $parametros['mesa'];
         $pedido->unidades = $parametros['unidades'];
         $pedido->nombreCliente = $parametros['nombre'];
-        $pedido->horaInicio = $parametros['horaInicio'];
-        $pedido->estado = $parametros['estado'];
+        $pedido->horaInicio = date('H:i:s');
+        $pedido->estado = "en preparacion";
+        $fecha = new DateTime();
+        $pedido->fecha = $fecha->format('Y-m-d');
 
         $pedido->crearPedido();
 
@@ -32,7 +34,6 @@ class PedidoController extends Pedido
     } catch (Exception $ex) {
       $payload = json_encode(array("mensaje" => "Se produjo un error " . $ex->getMessage()));
     }
-
 
     $response->getBody()->write($payload);
     return $response
