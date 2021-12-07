@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: localhost
--- Tiempo de generación: 22-11-2021 a las 17:15:55
+-- Tiempo de generación: 07-12-2021 a las 23:41:07
 -- Versión del servidor: 10.4.13-MariaDB
 -- Versión de PHP: 7.4.8
 
@@ -41,6 +41,41 @@ CREATE TABLE `encuesta` (
 -- --------------------------------------------------------
 
 --
+-- Estructura de tabla para la tabla `logs`
+--
+
+CREATE TABLE `logs` (
+  `id` int(11) NOT NULL,
+  `usuario` varchar(50) NOT NULL,
+  `fecha` varchar(50) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Volcado de datos para la tabla `logs`
+--
+
+INSERT INTO `logs` (`id`, `usuario`, `fecha`) VALUES
+(1, 'jose@gmail.com.ar', '2021-12-07 08:05:10'),
+(2, 'jose@gmail.com.ar', '2021-12-07 08:51:19'),
+(3, 'dagost@gmail.com.ar', '2021-12-07 08:53:58'),
+(4, 'ericag@gmail.com.ar', '2021-12-07 09:47:36'),
+(5, 'ericag@gmail.com.ar', '2021-12-07 09:52:43'),
+(6, 'dagost@gmail.com.ar', '2021-12-07 11:25:58'),
+(7, 'dagost@gmail.com.ar', '2021-12-07 11:28:09'),
+(8, 'dagost@gmail.com.ar', '2021-12-07 11:30:42'),
+(9, 'dagost@gmail.com.ar', '2021-12-07 11:31:05'),
+(10, 'dagost@gmail.com.ar', '2021-12-07 11:32:55'),
+(11, 'dagost@gmail.com.ar', '2021-12-07 11:33:46'),
+(12, 'dagost@gmail.com.ar', '2021-12-07 12:01:17'),
+(13, 'dagost@gmail.com.ar', '2021-12-07 01:48:54'),
+(14, 'dagost@gmail.com.ar', '2021-12-07 02:00:23'),
+(15, 'dagost@gmail.com.ar', '2021-12-07 02:45:20'),
+(16, 'jose@gmail.com.ar', '2021-12-07 02:45:38'),
+(17, 'jose@gmail.com.ar', '2021-12-07 02:49:50');
+
+-- --------------------------------------------------------
+
+--
 -- Estructura de tabla para la tabla `mesas`
 --
 
@@ -58,15 +93,15 @@ CREATE TABLE `mesas` (
 
 INSERT INTO `mesas` (`idMesa`, `codigo`, `estado`, `fechaInicio`, `fechaFinalizado`) VALUES
 (1, 'A5GH1', 'Cerrada', '2021-11-09', '2021-11-09'),
-(2, 'GR84T', 'Cerrada', '2021-11-09', '2021-11-09'),
-(3, 'H4Q5W', 'Cerrada', '2021-11-09', '2021-11-09'),
-(4, 'L87MY', 'Cerrada', '2021-11-09', '2021-11-09'),
-(5, 'P78BA', 'Cerrada', '2021-11-09', '2021-11-09'),
-(6, 'ZQ4W8', 'Cerrada', '2021-11-09', '2021-11-09'),
-(7, 'I8Y5T', 'Cerrada', '2021-11-09', '2021-11-09'),
-(8, '99QWE', 'Cerrada', '2021-11-09', '2021-11-09'),
-(9, 'JG2F2', 'Cerrada', '2021-11-09', '2021-11-09'),
-(10, 'R7T9Y', 'Cerrada', '2021-11-09', '2021-11-09');
+(2, 'GR84T', 'Abierta', '2021-11-10', '2021-12-05'),
+(3, 'H4Q5W', 'Cerrada', '2021-11-10', '2021-12-06'),
+(4, 'L87MY', 'Abierta', '2021-11-09', '2021-12-05'),
+(5, 'P78BA', 'Cerrada', '2021-11-09', '2021-12-06'),
+(6, 'ZQ4W8', 'Abierta', '2021-11-09', '2021-12-05'),
+(7, 'I8Y5T', 'Cerrada', '2021-11-09', '2021-12-05'),
+(8, '99QWE', 'Abierta', '2021-11-09', '2021-12-04'),
+(9, 'JG2F2', 'Cerrada', '2021-11-09', '2021-12-03'),
+(10, 'R7T9Y', 'Abierta', '2021-11-09', '2021-12-04');
 
 -- --------------------------------------------------------
 
@@ -99,7 +134,8 @@ CREATE TABLE `pedidos` (
   `estado` varchar(20) NOT NULL,
   `fecha` varchar(20) DEFAULT NULL,
   `foto` varchar(45) DEFAULT NULL,
-  `codigoPedido` varchar(20) DEFAULT NULL
+  `codigoPedido` varchar(20) DEFAULT NULL,
+  `tiempoEspera` varchar(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
@@ -124,17 +160,17 @@ CREATE TABLE `productos` (
 INSERT INTO `productos` (`idProducto`, `nombre`, `seccion`, `precio`, `fechaCarga`, `fechaModificacion`) VALUES
 (1, 'Mojito', 'Tragos', 350, '2021-11-09', '2021-11-09'),
 (2, 'Gin Tonic', 'Tragos', 320, '2021-11-09', '2021-11-09'),
-(3, 'Daiquiri', 'Tragos', 400, '2021-11-09', '2021-11-09'),
+(3, 'Daikiri', 'Tragos', 400, '2021-11-09', '2021-11-09'),
 (4, 'Champagne Baron', 'Tragos', 5800, '2021-11-09', '2021-11-09'),
 (5, 'Andes Ipa', 'Choperas', 280, '2021-11-09', '2021-11-09'),
 (6, 'Imperial Apa', 'Choperas', 280, '2021-11-09', '2021-11-09'),
-(7, 'Scotch Ale', 'Choperas', 290, '2021-11-09', '2021-11-09'),
-(8, 'Honey', 'Choperas', 300, '2021-11-09', '2021-11-09'),
+(7, 'Scotch', 'Choperas', 290, '2021-11-09', '2021-11-09'),
+(8, 'Corona', 'Choperas', 300, '2021-11-09', '2021-11-09'),
 (9, 'Heineken', 'Choperas', 300, '2021-11-09', '2021-11-09'),
 (10, 'Picada para dos', 'Cocina', 1200, '2021-11-09', '2021-11-09'),
-(11, 'Papas con Cheddar', 'Cocina', 450, '2021-11-09', '2021-11-09'),
+(11, 'Milanesa a caballo', 'Cocina', 850, '2021-11-09', '2021-11-09'),
 (12, 'Pizza Especial', 'Cocina', 690, '2021-11-09', '2021-11-09'),
-(13, 'Hamburguesa Vegana', 'Cocina', 650, '2021-11-09', '2021-11-09'),
+(13, 'Hamburguesa de garbanzo', 'Cocina', 650, '2021-11-09', '2021-11-09'),
 (14, 'Hamburguesa Delta', 'Cocina', 600, '2021-11-09', '2021-11-09'),
 (15, 'Ensalada Cesar', 'Cocina', 580, '2021-11-09', '2021-11-09'),
 (16, 'Bastones de Muzzarella', 'Cocina', 490, '2021-11-09', '2021-11-09'),
@@ -182,18 +218,19 @@ INSERT INTO `usuarios` (`idUsuario`, `nombre`, `apellido`, `usuario`, `clave`, `
 (13, 'Emiliano', 'Hernandez', 'ehernandez@gmail.com.ar', '4321', 'Socio', '', '2021-11-09', '', 'Activo'),
 (14, 'Florencia', 'Dagostino', 'dagost@gmail.com.ar', '4321', 'Socio', '', '2021-11-09', '', 'Activo'),
 (15, 'Guadalupe', 'Hernandez', 'ghernandez@gmail.com.ar', '4321', 'Socio', '', '2021-11-09', '', 'Activo'),
-(17, 'Maria', 'Alvarez', 'alvarez@gmail.com', '1234', 'Bartender', 'Tragos', '2021-11-11', NULL, 'Activo');
+(17, 'Maria', 'Alvarez', 'alvarez@gmail.com', '1234', 'Bartender', 'Tragos', '2021-11-11', NULL, 'Activo'),
+(18, 'Julio', 'Monopoli', 'monopoli@gmail.com', '1234', 'Bartender', 'Tragos', '2021-12-06', NULL, 'Activo');
 
 --
 -- Índices para tablas volcadas
 --
 
 --
--- Indices de la tabla `encuesta`
+-- Indices de la tabla `logs`
 --
-ALTER TABLE `encuesta`
-  ADD PRIMARY KEY (`idEncuesta`);
-  
+ALTER TABLE `logs`
+  ADD PRIMARY KEY (`id`);
+
 --
 -- Indices de la tabla `mesas`
 --
@@ -229,6 +266,12 @@ ALTER TABLE `usuarios`
 --
 
 --
+-- AUTO_INCREMENT de la tabla `logs`
+--
+ALTER TABLE `logs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+
+--
 -- AUTO_INCREMENT de la tabla `mesas`
 --
 ALTER TABLE `mesas`
@@ -244,7 +287,7 @@ ALTER TABLE `operaciones`
 -- AUTO_INCREMENT de la tabla `pedidos`
 --
 ALTER TABLE `pedidos`
-  MODIFY `idPedido` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `idPedido` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT de la tabla `productos`
@@ -256,15 +299,9 @@ ALTER TABLE `productos`
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `idUsuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `idUsuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 COMMIT;
 
---
--- AUTO_INCREMENT de la tabla `encuesta`
---
-ALTER TABLE `encuesta`
-  MODIFY `idEncuesta` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
-COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
