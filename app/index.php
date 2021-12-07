@@ -9,16 +9,22 @@ use Psr\Http\Server\RequestHandlerInterface;
 use Slim\Factory\AppFactory;
 use Slim\Routing\RouteCollectorProxy;
 use Slim\Routing\RouteContext;
+use Illuminate\Database\Capsule\Manager as Capsule;
 
 require __DIR__ . '/../vendor/autoload.php';
-
 require_once './db/AccesoDatos.php';
-
 require_once './controllers/UsuarioController.php';
 require_once './controllers/MesaController.php';
 require_once './controllers/PedidoController.php';
 require_once './controllers/ProductoController.php';
+require_once './controllers/EncuestaController.php';
+require_once './models/AutentificadorJWT.php';
+require_once './middlewares/MWAutentificar.php';
+require_once './models/Log.php';
+require_once './models/Mesa.php';
+require_once './models/Pedido.php';
 
+date_default_timezone_set('America/Argentina/Buenos_Aires');
 // Load ENV
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
 $dotenv->safeLoad();
@@ -33,27 +39,74 @@ $app->addErrorMiddleware(true, true, true);
 // Add parse body
 $app->addBodyParsingMiddleware();
 
+$capsule = new Capsule;
+$capsule->addConnection([
+    'driver'    => 'mysql',
+    'host'      => $_ENV['MYSQL_HOST'],
+    'database'  => $_ENV['MYSQL_DB'],
+    'username'  => $_ENV['MYSQL_USER'],
+    'password'  => $_ENV['MYSQL_PASS'],
+    'charset'   => 'utf8',
+    'collation' => 'utf8_unicode_ci',
+    'prefix'    => '',
+]);
+
+$capsule->setAsGlobal();
+$capsule->bootEloquent();
+
 // Routes
 
-$app->group('/usuarios', function (RouteCollectorProxy $group) {
-
-  $group->get('[/]', \UsuarioController::class . ':TraerTodos');
-  $group->post('[/]', \UsuarioController::class . ':CargarUno');
+$app->group('/login', function (RouteCollectorProxy $group) {
+  $group->post('[/]', \UsuarioController::class . ':Loguear');
 });
+
+$app->group('/usuarios', function (RouteCollectorProxy $group) {
+  $group->get('[/]', \UsuarioController::class . ':TraerTodos');
+  $group->post('[/]', \UsuarioController::class . ':CargarUno')->add(\MWAutentificar::class . ':VerificarTipoSocio');
+  $group->get('/descargar', \UsuarioController::class . ':DescargarCSV')->add(\MWAutentificar::class . ':VerificarTipoSocio');
+  $group->get('/leerCSV', \UsuarioController::class . ':LeerCSV');
+})->add(\MWAutentificar::class . ':VerificarUsuario');
 
 $app->group('/mesas', function (RouteCollectorProxy $group) {
   $group->get('[/]', \MesaController::class . ':TraerTodos');
-  $group->post('[/]', \MesaController::class . ':CargarUno');
-});
+  $group->post('[/]', \MesaController::class . ':CargarUno')->add(\MWAutentificar::class . ':VerificarTipoSocio');
+  $group->get('/descargar', \MesaController::class . ':DescargarCSV')->add(\MWAutentificar::class . ':VerificarTipoSocio');
+  $group->get('/leerCSV', \MesaController::class . ':LeerCSV');
+  $group->get('/socios', \Mesa::class . ':obtenerMesasEstados')->add(\MWAutentificar::class . ':VerificarTipoSocio');
+  $group->put('[/cerrar]', \MesaController::class . ':CerrarMesa')->add(\MWAutentificar::class . ':VerificarTipoSocio');
+  $group->put('[/modificar]', \MesaController::class . ':modificarEstadoMesa')->add(\MWAutentificar::class . ':VerificarTipoMozo');
+
+})->add(\MWAutentificar::class . ':VerificarUsuario')->add(\MWAutentificar::class . ':VerificarTipoUsuario');
 
 $app->group('/pedidos', function (RouteCollectorProxy $group) {
-  $group->get('[/]', \PedidoController::class . ':TraerTodos');
-  $group->post('[/]', \PedidoController::class . ':CargarUno');
-});
+  $group->get('[/]', \PedidoController::class . ':TraerTodos')->add(\MWAutentificar::class . ':VerificarTipoSocio');
+  $group->get('/listar', \PedidoController::class . ':listarPedidos');
+  $group->post('[/]', \PedidoController::class . ':CargarUno')->add(\MWAutentificar::class . ':VerificarTipoMozo');
+  $group->post('/imagen', \PedidoController::class . ':agregarImagenPedido')->add(\MWAutentificar::class . ':VerificarTipoMozo');
+  $group->get('/descargar', \PedidoController::class . ':DescargarCSV')->add(\MWAutentificar::class . ':VerificarTipoSocio');
+  $group->get('/socios', \Pedido::class . ':obtenerPedidosDemora')->add(\MWAutentificar::class . ':VerificarTipoSocio');
+  $group->get('/demoras', \Pedido::class . ':pedidosFueraDeHora')->add(\MWAutentificar::class . ':VerificarTipoSocio');
+  $group->put('/modificar', \PedidoController::class . ':modificarEstadoPedido');
+})->add(\MWAutentificar::class . ':VerificarUsuario');
 
 $app->group('/productos', function (RouteCollectorProxy $group) {
   $group->get('[/]', \ProductoController::class . ':TraerTodos');
-  $group->post('[/]', \ProductoController::class . ':CargarUno');
+  $group->post('[/]', \ProductoController::class . ':CargarUno')->add(\MWAutentificar::class . ':VerificarTipoSocio');
+  $group->get('/descargar', \ProductoController::class . ':DescargarCSV')->add(\MWAutentificar::class . ':VerificarTipoSocio');
+  $group->get('/leerCSV', \ProductoController::class . ':LeerCSV');
+})->add(\MWAutentificar::class . ':VerificarUsuario')->add(\MWAutentificar::class . ':VerificarTipoUsuario');
+
+$app->group('/logsempleados', function (RouteCollectorProxy $group) {
+  $group->get('[/]', \Log::class . ':PDFLogs')->add(\MWAutentificar::class . ':VerificarTipoSocio');
+})->add(\MWAutentificar::class . ':VerificarUsuario');
+
+$app->group('/cliente', function (RouteCollectorProxy $group) {
+  $group->post('[/]', \PedidoController::class . ':consultaDemora');
+  $group->post('[/cobros]', \PedidoController::class . ':generarCuenta')->add(\MWAutentificar::class . ':VerificarTipoMozo');
+});
+
+$app->group('/encuesta', function (RouteCollectorProxy $group) {
+  $group->post('[/]', \EncuestaController::class . ':CargarUno');
 });
 
 
@@ -66,3 +119,5 @@ $app->get('[/]', function (Request $request, Response $response) {
 
 
 $app->run();
+
+?>

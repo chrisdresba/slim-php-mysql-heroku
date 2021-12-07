@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: localhost
--- Tiempo de generación: 11-11-2021 a las 03:41:29
+-- Tiempo de generación: 22-11-2021 a las 17:15:55
 -- Versión del servidor: 10.4.13-MariaDB
 -- Versión de PHP: 7.4.8
 
@@ -20,6 +20,23 @@ SET time_zone = "+00:00";
 --
 -- Base de datos: `Comanda`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `encuesta`
+--
+
+CREATE TABLE `encuesta` (
+  `idEncuesta` int(11) NOT NULL,
+  `codigoMesa` int(11) NOT NULL,
+  `codigoPedido` int(11) NOT NULL,
+  `puntMesa` int(11) NOT NULL,
+  `puntResto` int(11) NOT NULL,
+  `puntMozo` int(11) NOT NULL,
+  `puntCocinero` int(11) NOT NULL,
+  `experiencia` varchar(66) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -81,7 +98,8 @@ CREATE TABLE `pedidos` (
   `horaFinalizado` varchar(20) DEFAULT NULL,
   `estado` varchar(20) NOT NULL,
   `fecha` varchar(20) DEFAULT NULL,
-  `foto` varchar(45) DEFAULT NULL
+  `foto` varchar(45) DEFAULT NULL,
+  `codigoPedido` varchar(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
@@ -163,12 +181,19 @@ INSERT INTO `usuarios` (`idUsuario`, `nombre`, `apellido`, `usuario`, `clave`, `
 (12, 'Gonzalo', 'Aranda', 'aranda@gmail.com.ar', '1234', 'Cocinero', 'Cocina', '2021-11-09', '', 'Activo'),
 (13, 'Emiliano', 'Hernandez', 'ehernandez@gmail.com.ar', '4321', 'Socio', '', '2021-11-09', '', 'Activo'),
 (14, 'Florencia', 'Dagostino', 'dagost@gmail.com.ar', '4321', 'Socio', '', '2021-11-09', '', 'Activo'),
-(15, 'Guadalupe', 'Hernandez', 'ghernandez@gmail.com.ar', '4321', 'Socio', '', '2021-11-09', '', 'Activo');
+(15, 'Guadalupe', 'Hernandez', 'ghernandez@gmail.com.ar', '4321', 'Socio', '', '2021-11-09', '', 'Activo'),
+(17, 'Maria', 'Alvarez', 'alvarez@gmail.com', '1234', 'Bartender', 'Tragos', '2021-11-11', NULL, 'Activo');
 
 --
 -- Índices para tablas volcadas
 --
 
+--
+-- Indices de la tabla `encuesta`
+--
+ALTER TABLE `encuesta`
+  ADD PRIMARY KEY (`idEncuesta`);
+  
 --
 -- Indices de la tabla `mesas`
 --
@@ -219,21 +244,27 @@ ALTER TABLE `operaciones`
 -- AUTO_INCREMENT de la tabla `pedidos`
 --
 ALTER TABLE `pedidos`
-  MODIFY `idPedido` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `idPedido` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT de la tabla `productos`
 --
 ALTER TABLE `productos`
-  MODIFY `idProducto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `idProducto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `idUsuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `idUsuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 COMMIT;
 
+--
+-- AUTO_INCREMENT de la tabla `encuesta`
+--
+ALTER TABLE `encuesta`
+  MODIFY `idEncuesta` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
