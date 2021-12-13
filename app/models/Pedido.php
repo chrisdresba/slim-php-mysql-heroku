@@ -16,7 +16,7 @@ class Pedido
     public $estado;
     public $fecha;
     public $foto;
-    public $demora;
+    public $tiempoEspera;
 
     public function crearPedido()
     {
@@ -110,14 +110,26 @@ class Pedido
     public function modificarDemora($codigo)
     {
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("UPDATE pedidos SET tiempoEspera=:tiempoEspera WHERE codigoPedido=:codigo");
+        $consulta = $objAccesoDatos->prepararConsulta("UPDATE pedidos SET tiempoEspera=:tiempoEspera WHERE codigoPedido=:codigo AND idProducto=:producto");
         $consulta->bindValue(':tiempoEspera', $this->demora, PDO::PARAM_STR);
+        $consulta->bindValue(':producto', $this->idProducto, PDO::PARAM_STR);
         $consulta->bindValue(':codigo', $codigo, PDO::PARAM_STR);
         $consulta->execute();
 
         return $consulta->fetchAll(PDO::FETCH_CLASS, 'Pedido');
     }
 
+    public function asignarHoraFinalizado($codigo)
+    {
+        $objAccesoDatos = AccesoDatos::obtenerInstancia();
+        $consulta = $objAccesoDatos->prepararConsulta("UPDATE pedidos SET horaFinalizado=:tiempoFinalizado WHERE codigoPedido=:codigo AND idProducto=:producto");
+        $consulta->bindValue(':tiempoFinalizado', $this->horaFinalizado, PDO::PARAM_STR);
+        $consulta->bindValue(':producto', $this->idProducto, PDO::PARAM_STR);
+        $consulta->bindValue(':codigo', $codigo, PDO::PARAM_STR);
+        $consulta->execute();
+
+        return $consulta->fetchAll(PDO::FETCH_CLASS, 'Pedido');
+    }
 
 
     public static function borrarPedido($id)
@@ -151,7 +163,7 @@ class Pedido
   public static function listarPedidoCocinero()
   {
       $objAccesoDatos = AccesoDatos::obtenerInstancia();
-      $consulta = $objAccesoDatos->prepararConsulta('SELECT * FROM pedidos U INNER JOIN productos P' .' ON  U.idProducto = P.idProducto' .
+      $consulta = $objAccesoDatos->prepararConsulta('SELECT * FROM pedidos U INNER JOIN productos P ON  U.idProducto = P.idProducto' .
       ' WHERE seccion = "Cocina" ');
       $consulta->execute();
 

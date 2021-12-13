@@ -18,6 +18,7 @@ require_once './controllers/MesaController.php';
 require_once './controllers/PedidoController.php';
 require_once './controllers/ProductoController.php';
 require_once './controllers/EncuestaController.php';
+require_once './controllers/ConsultasController.php';
 require_once './models/AutentificadorJWT.php';
 require_once './middlewares/MWAutentificar.php';
 require_once './models/Log.php';
@@ -72,9 +73,9 @@ $app->group('/mesas', function (RouteCollectorProxy $group) {
   $group->post('[/]', \MesaController::class . ':CargarUno')->add(\MWAutentificar::class . ':VerificarTipoSocio');
   $group->get('/descargar', \MesaController::class . ':DescargarCSV')->add(\MWAutentificar::class . ':VerificarTipoSocio');
   $group->get('/leerCSV', \MesaController::class . ':LeerCSV');
-  $group->get('/socios', \Mesa::class . ':obtenerMesasEstados')->add(\MWAutentificar::class . ':VerificarTipoSocio');
-  $group->put('[/cerrar]', \MesaController::class . ':CerrarMesa')->add(\MWAutentificar::class . ':VerificarTipoSocio');
-  $group->put('[/modificar]', \MesaController::class . ':modificarEstadoMesa')->add(\MWAutentificar::class . ':VerificarTipoMozo');
+  $group->get('/socios', \MesaController::class . ':listadoMesasEstados')->add(\MWAutentificar::class . ':VerificarTipoSocio');
+  $group->put('/cerrar', \MesaController::class . ':CerrarMesa')->add(\MWAutentificar::class . ':VerificarTipoSocio');
+  $group->put('/modificar', \MesaController::class . ':modificarEstadoMesa')->add(\MWAutentificar::class . ':VerificarTipoMozo');
 
 })->add(\MWAutentificar::class . ':VerificarUsuario')->add(\MWAutentificar::class . ':VerificarTipoUsuario');
 
@@ -84,7 +85,7 @@ $app->group('/pedidos', function (RouteCollectorProxy $group) {
   $group->post('[/]', \PedidoController::class . ':CargarUno')->add(\MWAutentificar::class . ':VerificarTipoMozo');
   $group->post('/imagen', \PedidoController::class . ':agregarImagenPedido')->add(\MWAutentificar::class . ':VerificarTipoMozo');
   $group->get('/descargar', \PedidoController::class . ':DescargarCSV')->add(\MWAutentificar::class . ':VerificarTipoSocio');
-  $group->get('/socios', \Pedido::class . ':obtenerPedidosDemora')->add(\MWAutentificar::class . ':VerificarTipoSocio');
+  $group->get('/socios', \PedidoController::class . ':listadoPedidoDemora')->add(\MWAutentificar::class . ':VerificarTipoSocio');
   $group->get('/demoras', \Pedido::class . ':pedidosFueraDeHora')->add(\MWAutentificar::class . ':VerificarTipoSocio');
   $group->put('/modificar', \PedidoController::class . ':modificarEstadoPedido');
 })->add(\MWAutentificar::class . ':VerificarUsuario');
@@ -96,12 +97,12 @@ $app->group('/productos', function (RouteCollectorProxy $group) {
   $group->get('/leerCSV', \ProductoController::class . ':LeerCSV');
 })->add(\MWAutentificar::class . ':VerificarUsuario')->add(\MWAutentificar::class . ':VerificarTipoUsuario');
 
-$app->group('/logsempleados', function (RouteCollectorProxy $group) {
+$app->group('/pdfempleados', function (RouteCollectorProxy $group) {
   $group->get('[/]', \Log::class . ':PDFLogs')->add(\MWAutentificar::class . ':VerificarTipoSocio');
 })->add(\MWAutentificar::class . ':VerificarUsuario');
 
 $app->group('/cliente', function (RouteCollectorProxy $group) {
-  $group->post('[/]', \PedidoController::class . ':consultaDemora');
+  $group->post('/pedido', \PedidoController::class . ':consultaDemora');
   $group->post('[/cobros]', \PedidoController::class . ':generarCuenta')->add(\MWAutentificar::class . ':VerificarTipoMozo');
 });
 
@@ -109,9 +110,22 @@ $app->group('/encuesta', function (RouteCollectorProxy $group) {
   $group->post('[/]', \EncuestaController::class . ':CargarUno');
 });
 
+$app->group('/consultas', function (RouteCollectorProxy $group) {
+  $group->get('/mejorescomentarios', \ConsultasController::class . ':obtenerMejoresComentario');
+  $group->get('/mesamasusada', \ConsultasController::class . ':obtenerMesaMasUsada');
+  $group->get('/pedidosfueradetiempo', \ConsultasController::class . ':obtenerPedidosNoEntregadosATiempo');
+  $group->get('/pedidosatiempo', \ConsultasController::class . ':obtenerPedidosEntregadosATiempo');
+  $group->get('/operacionesporsector', \ConsultasController::class . ':obtenerOperacionesPorSector');
+  $group->get('/operacionesporempleado', \ConsultasController::class . ':obtenerOperacionesPorEmpleado');
+  $group->get('/productomasvendido', \ConsultasController::class . ':obtenerProductoMasVendido');
+  $group->post('/logsempleado', \ConsultasController::class . ':obtenerLogsEmpleado');
+  $group->get('/menorfactura', \ConsultasController::class . ':obtenerMenorFactura');
+  $group->post('/facturacionporfecha', \ConsultasController::class . ':obtenerFacturacionEntreFechas');
+})->add(\MWAutentificar::class . ':VerificarTipoSocio');
+
 
 $app->get('[/]', function (Request $request, Response $response) {    
-    $response->getBody()->write("La comanda");
+    $response->getBody()->write("La comanda , UTN Cristian Barraza");
     return $response;
 
 });

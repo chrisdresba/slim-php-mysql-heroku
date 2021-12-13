@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: localhost
--- Tiempo de generación: 07-12-2021 a las 23:41:07
+-- Tiempo de generación: 13-12-2021 a las 01:00:25
 -- Versión del servidor: 10.4.13-MariaDB
 -- Versión de PHP: 7.4.8
 
@@ -29,14 +29,29 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `encuesta` (
   `idEncuesta` int(11) NOT NULL,
-  `codigoMesa` int(11) NOT NULL,
-  `codigoPedido` int(11) NOT NULL,
+  `codigoMesa` varchar(5) NOT NULL,
+  `codigoPedido` varchar(11) NOT NULL,
   `puntMesa` int(11) NOT NULL,
   `puntResto` int(11) NOT NULL,
   `puntMozo` int(11) NOT NULL,
   `puntCocinero` int(11) NOT NULL,
-  `experiencia` varchar(66) NOT NULL
+  `experiencia` varchar(66) NOT NULL,
+  `fecha` varchar(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Volcado de datos para la tabla `encuesta`
+--
+
+INSERT INTO `encuesta` (`idEncuesta`, `codigoMesa`, `codigoPedido`, `puntMesa`, `puntResto`, `puntMozo`, `puntCocinero`, `experiencia`, `fecha`) VALUES
+(1, '8', 'AA5581', 8, 7, 9, 8, 'Una muy buena atencion', '2021-12-07'),
+(2, '8', 'AA55780', 8, 7, 9, 8, 'Una muy buena atencion', '2021-12-08'),
+(3, '7', 'AA5581', 7, 6, 6, 7, 'Demora en la atencion', '2021-12-09'),
+(4, '2', 'AA5582', 7, 5, 6, 5, 'Atencion Regular', '2021-12-10'),
+(5, '2', 'AA5583', 8, 10, 9, 8, 'Una muy buena atencion', '2021-12-11'),
+(6, '3', 'AA5584', 8, 8, 9, 8, 'Una muy buena atencion', '2021-12-11'),
+(7, '4', 'AA5585', 7, 6, 6, 7, 'Demora en la atencion', '2021-12-12'),
+(8, '5', 'AA5590', 7, 5, 6, 5, 'Atencion Regular', '2021-12-12');
 
 -- --------------------------------------------------------
 
@@ -67,12 +82,14 @@ INSERT INTO `logs` (`id`, `usuario`, `fecha`) VALUES
 (10, 'dagost@gmail.com.ar', '2021-12-07 11:32:55'),
 (11, 'dagost@gmail.com.ar', '2021-12-07 11:33:46'),
 (12, 'dagost@gmail.com.ar', '2021-12-07 12:01:17'),
-(13, 'dagost@gmail.com.ar', '2021-12-07 01:48:54'),
-(14, 'dagost@gmail.com.ar', '2021-12-07 02:00:23'),
-(15, 'dagost@gmail.com.ar', '2021-12-07 02:45:20'),
-(16, 'jose@gmail.com.ar', '2021-12-07 02:45:38'),
-(17, 'jose@gmail.com.ar', '2021-12-07 02:49:50');
-
+(13, 'jose@gmail.com.ar', '2021-12-10 11:03:43'),
+(14, 'juliof@gmail.com.ar', '2021-12-10 11:03:59'),
+(15, 'ericag@gmail.com.ar', '2021-12-10 11:04:03'),
+(16, 'aperez@gmail.com.ar', '2021-12-10 11:04:07'),
+(17, 'dagost@gmail.com.ar', '2021-12-10 11:04:11'),
+(18, 'dagost@gmail.com.ar', '2021-12-11 02:09:27'),
+(19, 'jose@gmail.com.ar', '2021-12-11 10:43:18'),
+(20, 'dagost@gmail.com.ar', '2021-12-11 11:19:17');
 -- --------------------------------------------------------
 
 --
@@ -116,6 +133,21 @@ CREATE TABLE `operaciones` (
   `fechaCreacion` date NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+--
+-- Volcado de datos para la tabla `operaciones`
+--
+
+INSERT INTO `operaciones` (`idOperacion`, `idMesa`, `importe`, `fechaCreacion`) VALUES
+(1, '8', 1000, '2021-12-07'),
+(2, '6', 800, '2021-12-09'),
+(3, '7', 2050, '2021-12-10'),
+(4, '8', 2850, '2021-12-10'),
+(5, '8', 3550, '2021-12-11'),
+(6, '2', 3050, '2021-12-11'),
+(7, '2', 1950, '2021-12-12'),
+(8, '5', 2000, '2021-12-12'),
+(9, '4', 2850, '2021-12-12');
+
 -- --------------------------------------------------------
 
 --
@@ -137,6 +169,26 @@ CREATE TABLE `pedidos` (
   `codigoPedido` varchar(20) DEFAULT NULL,
   `tiempoEspera` varchar(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Volcado de datos para la tabla `pedidos`
+--
+
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `procedimientos`
+--
+
+CREATE TABLE `procedimientos` (
+  `id` int(11) NOT NULL,
+  `usuario` varchar(50) DEFAULT NULL,
+  `seccion` varchar(50) DEFAULT NULL,
+  `fecha` varchar(50) DEFAULT NULL,
+  `idProducto` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 
 -- --------------------------------------------------------
 
@@ -226,6 +278,12 @@ INSERT INTO `usuarios` (`idUsuario`, `nombre`, `apellido`, `usuario`, `clave`, `
 --
 
 --
+-- Indices de la tabla `encuesta`
+--
+ALTER TABLE `encuesta`
+  ADD PRIMARY KEY (`idEncuesta`);
+
+--
 -- Indices de la tabla `logs`
 --
 ALTER TABLE `logs`
@@ -250,6 +308,12 @@ ALTER TABLE `pedidos`
   ADD PRIMARY KEY (`idPedido`);
 
 --
+-- Indices de la tabla `procedimientos`
+--
+ALTER TABLE `procedimientos`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indices de la tabla `productos`
 --
 ALTER TABLE `productos`
@@ -266,34 +330,46 @@ ALTER TABLE `usuarios`
 --
 
 --
+-- AUTO_INCREMENT de la tabla `encuesta`
+--
+ALTER TABLE `encuesta`
+  MODIFY `idEncuesta` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+
+--
 -- AUTO_INCREMENT de la tabla `logs`
 --
 ALTER TABLE `logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT de la tabla `mesas`
 --
 ALTER TABLE `mesas`
-  MODIFY `idMesa` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `idMesa` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT de la tabla `operaciones`
 --
 ALTER TABLE `operaciones`
-  MODIFY `idOperacion` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `idOperacion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT de la tabla `pedidos`
 --
 ALTER TABLE `pedidos`
-  MODIFY `idPedido` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `idPedido` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+
+--
+-- AUTO_INCREMENT de la tabla `procedimientos`
+--
+ALTER TABLE `procedimientos`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
 
 --
 -- AUTO_INCREMENT de la tabla `productos`
 --
 ALTER TABLE `productos`
-  MODIFY `idProducto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `idProducto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT de la tabla `usuarios`

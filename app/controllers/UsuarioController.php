@@ -114,7 +114,7 @@ class UsuarioController extends Usuario
               $log = new Log();
               $log->usuario = $usuario->usuario;
               $fecha = new DateTime();
-              $log->fecha = $fecha->format("Y-m-d h:i:s"); 
+              $log->fecha = $fecha->format("Y-m-d H:i:s"); 
               $log->crearLog();
 
               $token = AutentificadorJWT::CrearToken(array('usuario' => $usuario->usuario, 'clave' => $usuario->clave, 'tipo' => $usuario->tipo));

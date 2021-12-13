@@ -81,7 +81,7 @@ class MesaController extends Mesa
 
   public function CerrarMesa(Request $request, Response $response, $args)
   {
-   $parametros = json_decode(file_get_contents("php://input"), true);
+    $parametros = json_decode(file_get_contents("php://input"), true);
 
     if (isset($parametros['acceso'])) {
       if (isset($parametros['id']) && isset($parametros['estado'])) {
@@ -115,7 +115,7 @@ class MesaController extends Mesa
 
     $mesas = Mesa::obtenerTodos();
     $path = dirname(__DIR__, 1);
- 
+
     try {
       $fp = fopen($path . '/ArchivosCSV/mesas.csv', 'w+');
 
@@ -132,80 +132,94 @@ class MesaController extends Mesa
     }
 
     $response->getBody()->write(json_encode(array("mensaje" => "Mesas descargadas en CSV")));
-   
+
     return $response
       ->withHeader('Content-Type', 'application/json');
   }
 
   public function LeerCSV(Request $request, Response $response, $args)
   {
-      $entidades = Array();
-      $path = dirname(__DIR__, 1);
-      $fp = fopen($path . '/ArchivosCSV/mesas.csv', 'r');
- 
+    $entidades = array();
+    $path = dirname(__DIR__, 1);
+    $fp = fopen($path . '/ArchivosCSV/mesas.csv', 'r');
 
-      if($fp){
-  
-        while (($linea = fgetcsv($fp,1000,",")) !== FALSE)
-            {     
-            $nueva=Mesa::constructor($linea[0],$linea[1],$linea[2],$linea[3],$linea[4]);
-        
-            array_push($entidades,$nueva);
-            }
-            fclose($fp);
-      
-            var_dump($entidades);
+
+    if ($fp) {
+
+      while (($linea = fgetcsv($fp, 1000, ",")) !== FALSE) {
+        $nueva = Mesa::constructor($linea[0], $linea[1], $linea[2], $linea[3], $linea[4]);
+
+        array_push($entidades, $nueva);
+      }
+      fclose($fp);
+
+      var_dump($entidades);
 
       $response->getBody()->write(json_encode(array("CSV:" => "Se realizo la carga con exito")));
-     return $response
-      ->withHeader('Content-Type', 'application/json');
-    
-
+      return $response
+        ->withHeader('Content-Type', 'application/json');
     }
     $response->getBody()->write(json_encode(array("mensaje" => "no se pudo leer el archivo")));
     return $response
       ->withHeader('Content-Type', 'application/json');
-
   }
 
 
   public function modificarEstadoMesa(Request $request, Response $response, $args)
   {
 
-    $parametros = $request->getParsedBody();
-    parse_str(file_get_contents('php://input'), $parametros);
+    $parametros = json_decode(file_get_contents("php://input"), true);
 
     $header = $request->getHeaderLine('Authorization');
     $token = trim(explode("Bearer", $header)[1]);
 
     $usuario = AutentificadorJWT::ObtenerData($token);
 
-    $tipo = $parametros['tipo'];
+    $tipo = $usuario->tipo;
+    $pedido = $parametros['pedido'];
     $estado = $parametros['estado'];
-   
-    $array = Pedido::obtenerTodos();
 
-       if($tipo == "Mozo"){
+    $array = Pedido::obtenerPedido($pedido);
+    $items = count($array);
 
-        foreach($array as $a){
+    if ($tipo == "Mozo") {
 
+      foreach ($array as $a) {
         if ($a->estado == 'listo para servir') {
-
-          $mesa = new Mesa();
-          $mesa->estado = $estado; 
-          $mesa->modificarMesa($a->idMesa);
+          $items = $items - 1;
         }
-
-        }
-      }else{
-        $payload = json_encode(array("mensaje" => "No tenes autorizado modificar estado"));
-      } 
+      }
+      if ($items == 0) {
+        $mesa = new Mesa();
+        $mesa->estado = $estado;
+        $mesa->modificarMesa($a->idMesa);
+        $payload = json_encode(array("Se modifico el estado de la mesa a " => $estado));
+      } else {
+        $payload = json_encode(array("Pedido " => "Hay productos que aun no estan para servir"));
+      }
+    } else {
+      $payload = json_encode(array("mensaje" => "No tenes autorizado modificar estado"));
+    }
 
     $response->getBody()->write($payload);
     return $response
       ->withHeader('Content-Type', 'application/json');
   }
 
-   
+  public function listadoMesasEstados(Request $request, Response $response, $args)
+  {
 
+    try {
+      $mesas = Mesa::obtenerMesasEstados();
+    } catch (Exception $ex) {
+      $response->getBody()->write(json_encode(array("mensaje" => "error")));
+      return $response
+        ->withHeader('Content-Type', 'application/json');
+    }
+
+    $response->getBody()->write(json_encode(array("Listado" => $mesas)));
+
+    return $response
+      ->withHeader('Content-Type', 'application/json');
+  }
 }

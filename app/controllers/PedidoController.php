@@ -6,6 +6,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 require_once './models/Pedido.php';
 require_once './models/Producto.php';
 require_once './models/Operacion.php';
+require_once './models/Procedimientos.php';
 require_once './db/AccesoDatos.php';
 
 class PedidoController extends Pedido
@@ -156,58 +157,99 @@ class PedidoController extends Pedido
 
 
 
-  public function modificarEstadoMozo(Request $request, Response $response, $args)
+  public function modificarEstadoPedido(Request $request, Response $response, $args)
   {
 
-    $parametros = $request->getParsedBody();
-    parse_str(file_get_contents('php://input'), $parametros);
+    $parametros = json_decode(file_get_contents("php://input"), true);
 
     $header = $request->getHeaderLine('Authorization');
     $token = trim(explode("Bearer", $header)[1]);
 
     $usuario = AutentificadorJWT::ObtenerData($token);
 
-
-    $codigoPedido = $parametros['codigo"'];
+    $codigoPedido = $parametros['codigo'];
     $estado = $parametros['estado'];
+    $producto = $parametros['producto'];
     $tiempo = $parametros['tiempo'];
 
     $pedido = new Pedido();
     $pedido->estado = $estado;
+    $pedido->idProducto = $producto;
     $pedido->codigoPedido = $codigoPedido;
 
     $date = new DateTime();
     $tiempo = $date->modify('+' . $tiempo . ' minute');
     $demora = $tiempo->format('H:i:s');
 
-    switch ($usuario->tipo) {
-      case 'Ba':
+    $acciones = new Procedimientos();
 
-        if ($estado != 'listo para servir') {
+    switch ($usuario->tipo) {
+      case 'Bartender':
+
+        if ($estado == "listo para servir") {
+          $horaFinalizado = new DateTime();
+          $pedido->horaFinalizado = $horaFinalizado->format('H:i:s');
+          $pedido->asignarHoraFinalizado($codigoPedido);
+        } else {
           $pedido->demora = $demora;
           $pedido->modificarEstado($codigoPedido);
           $pedido->modificarDemora($codigoPedido);
+        }
+
+
+        if ($estado == "en preparacion") {
+          $acciones->usuario = $usuario->usuario;
+          $acciones->seccion = "Tragos";
+          $fecha = new DateTime();
+          $acciones->fecha = $fecha->format("Y-m-d H:i:s");
+          $acciones->producto = intval($producto);
+          $acciones->crearProcedimiento();
         }
 
         $payload = json_encode(array("mensaje" => "modificado con exito pedido por Bartender"));
         break;
       case 'Cocinero':
 
-        if ($estado != 'listo para servir') {
+        if ($estado == "listo para servir") {
+          $horaFinalizado = new DateTime();
+          $pedido->horaFinalizado = $horaFinalizado->format('H:i:s');
+          $pedido->asignarHoraFinalizado($codigoPedido);
+        } else {
           $pedido->demora = $demora;
           $pedido->modificarEstado($codigoPedido);
           $pedido->modificarDemora($codigoPedido);
         }
 
+        if ($estado == "en preparacion") {
+          $acciones->usuario = $usuario->usuario;
+          $acciones->seccion = "Cocina";
+          $fecha = new DateTime();
+          $acciones->fecha = $fecha->format("Y-m-d H:i:s");
+          $acciones->producto = intval($producto);
+          $acciones->crearProcedimiento();
+        }
+
         $payload = json_encode(array("mensaje" => "modificado con exito pedido por Cocinero"));
-        break;
         break;
       case 'Cerveceros':
 
-        if ($estado != 'listo para servir') {
+        if ($estado == "listo para servir") {
+          $horaFinalizado = new DateTime();
+          $pedido->horaFinalizado = $horaFinalizado->format('H:i:s');
+          $pedido->asignarHoraFinalizado($codigoPedido);
+        } else {
           $pedido->demora = $demora;
           $pedido->modificarEstado($codigoPedido);
           $pedido->modificarDemora($codigoPedido);
+        }
+
+        if ($estado == "en preparacion") {
+          $acciones->usuario = $usuario->usuario;
+          $acciones->seccion = "Choperas";
+          $fecha = new DateTime();
+          $acciones->fecha = $fecha->format("Y-m-d H:i:s");
+          $acciones->producto = intval($producto);
+          $acciones->crearProcedimiento();
         }
 
         $payload = json_encode(array("mensaje" => "modificado con exito pedido por Cerveceros"));
@@ -217,8 +259,6 @@ class PedidoController extends Pedido
         $payload = json_encode(array("mensaje" => "No tenes autorizado modificar estado"));
         break;
     }
-
-
     $response->getBody()->write($payload);
     return $response
       ->withHeader('Content-Type', 'application/json');
@@ -234,36 +274,23 @@ class PedidoController extends Pedido
 
     switch ($usuario->tipo) {
       case 'Socio':
-        $b = Pedido::obtenerTodos();
-        json_encode($b);
+        $array = Pedido::obtenerTodos();
         break;
-
       case 'Mozo':
-        $b = Pedido::obtenerTodos();
-        json_encode($b);
+        $array = Pedido::obtenerTodos();
         break;
-
       case 'Bartender':
-        $b = Pedido::listarPedidoBartender();
-        json_encode($b);
+        $array = Pedido::listarPedidoBartender();
         break;
-
       case 'Cocinero':
-        $b = Pedido::listarPedidoCocinero();
-        json_encode($b);
+        $array = Pedido::listarPedidoCocinero();
         break;
-
-      case 'Cervecero':
-        $b = Pedido::listarPedidoCervecero();
-        json_encode($b);
-        break;
-
-      default:
-        'err';
+      case 'Cerveceros':
+        $array = Pedido::listarPedidoCervecero();
         break;
     }
 
-    $payload = json_encode(array("LISTA:" => $b));
+    $payload = json_encode(array("LISTA:" => $array));
 
     $response->getBody()->write($payload);
     return $response
@@ -288,6 +315,7 @@ class PedidoController extends Pedido
         $segundos = strtotime($pedido->tiempoEspera);
 
         if ($maximo < $segundos) {
+          $maximo = $segundos;
           $tiempo = $pedido->tiempoEspera;
         }
       }
@@ -307,6 +335,22 @@ class PedidoController extends Pedido
   }
 
 
+  public function listadoPedidoDemora(Request $request, Response $response, $args)
+  {
+
+    try {
+      $pedidos = Pedido::obtenerPedidosDemora();
+    } catch (Exception $ex) {
+      $response->getBody()->write(json_encode(array("mensaje" => "error")));
+      return $response
+        ->withHeader('Content-Type', 'application/json');
+    }
+
+    $response->getBody()->write(json_encode(array("Listado" => $pedidos)));
+
+    return $response
+      ->withHeader('Content-Type', 'application/json');
+  }
 
 
   public function generarCuenta(Request $request, Response $response, $args)
@@ -323,8 +367,9 @@ class PedidoController extends Pedido
       $array = Pedido::obtenerPedido($pedido);
 
       foreach ($array as $producto) {
+
         $valor = Producto::obtenerProducto($producto->idProducto);
-        $acumulador = ($producto->unidades * $valor->precio);
+        $acumulador = $producto->unidades * $valor[0]->precio;
         $precioFinal += $acumulador;
       }
 
@@ -362,7 +407,7 @@ class PedidoController extends Pedido
       $segundosEntrega = strtotime($pedido->horaFinalizado);
 
       if ($segundosEspera > $segundosEntrega) {
-        array_push($listado,$pedido->idPedido);
+        array_push($listado, $pedido->idPedido);
       }
     }
 

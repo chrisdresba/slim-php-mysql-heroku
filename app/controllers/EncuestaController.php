@@ -27,6 +27,8 @@ class EncuestaController extends Encuesta
         $encuesta->mozo = intval($parametros['puntuacionMozo']);
         $encuesta->cocinero = intval($parametros['puntuacionCocinero']);
         $encuesta->experiencia = $parametros['experiencia'];
+        $fecha = new DateTime();
+        $encuesta->fecha = $fecha->format('Y-m-d');
         $encuesta->crearEncuesta();
         $payload = json_encode(array("mensaje" => "Encuesta creada con exito"));
       }

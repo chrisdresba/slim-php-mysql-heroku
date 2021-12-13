@@ -10,11 +10,12 @@ class Encuesta {
     public $mozo;
     public $cocinero;
     public $experiencia;
+    public $fecha;
 
     public function crearEncuesta()
     {
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("INSERT INTO encuesta (codigoMesa, codigoPedido, puntMesa, puntResto, puntMozo, puntCocinero, experiencia) VALUES (:codigoMesa, :codigoPedido, :mesa, :resto, :mozo, :cocinero, :experiencia)");
+        $consulta = $objAccesoDatos->prepararConsulta("INSERT INTO encuesta (codigoMesa, codigoPedido, puntMesa, puntResto, puntMozo, puntCocinero, experiencia, fecha) VALUES (:codigoMesa, :codigoPedido, :mesa, :resto, :mozo, :cocinero, :experiencia, :fecha)");
 
         $consulta->bindValue(':codigoMesa', $this->codigoMesa, PDO::PARAM_STR);
         $consulta->bindValue(':codigoPedido', $this->codigoPedido, PDO::PARAM_STR);
@@ -23,6 +24,7 @@ class Encuesta {
         $consulta->bindValue(':mozo', $this->mozo, PDO::PARAM_INT);
         $consulta->bindValue(':cocinero', $this->cocinero, PDO::PARAM_INT);
         $consulta->bindValue(':experiencia', $this->experiencia, PDO::PARAM_STR);
+        $consulta->bindValue(':fecha', $this->fecha, PDO::PARAM_STR);
         $consulta->execute();
 
         return $objAccesoDatos->obtenerUltimoId();

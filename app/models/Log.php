@@ -1,5 +1,9 @@
 <?php
 
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+
+
 require_once './db/AccesoDatos.php';
 include_once("./TCPDF/tcpdf.php");
 
@@ -31,33 +35,45 @@ class Log extends TCPDF
         return $consulta->fetchAll(PDO::FETCH_CLASS, 'Log');
     }
 
-    public static function PDFLogs($request, $response, $args)
+    public static function obtenerLog($usuario)
     {
-      $pdf = new TCPDF('P', 'cm','letter');
-      $pdf->SetAuthor("Comanda", true);
-      $pdf->SetFont('', '', 6);
-      $pdf->SetTitle("Listado de Logs", true);
-      $pdf->AddPage();
-  
-      $listado = Log::obtenerTodos();
+        $objAccesoDatos = AccesoDatos::obtenerInstancia();
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT fecha FROM logs WHERE usuario=:usuario");
+        $consulta->bindValue(':usuario', $usuario, PDO::PARAM_STR);
+        $consulta->execute();
 
-      foreach($listado as $log){
-        $pdf->Cell(0, 1, "id: " . $log->id . " - " . "usuario: " .$log->usuario . " - " . "fecha: " . $log->fecha , 0, 1);
-      }
-
-     $path = dirname(__DIR__, 1);
-
-     $pdf->Output($path . '/ArchivosPDF/PDFLogs.pdf','F');
-      
-      $payload = json_encode(array("mensaje" => "PDF GENERADO"));
-      $response->getBody()->write($payload);
-      return $response
-        ->withHeader('Content-Type', 'application/json');
-    
+        return $consulta->fetchAll(PDO::FETCH_OBJ);
     }
 
-    
-    
-}
+    public static function PDFLogs(Request $request, Response $response, $args)
+    {
+        try {
+            $pdf = new TCPDF('P', 'cm', 'A6');
+            $pdf->SetAuthor("Comanda", true);
+            $pdf->SetFont('', '', 7);
+            $pdf->SetHeaderData(PDF_HEADER_LOGO);
+            $path = dirname(__DIR__, 1);
+            $pdf->Image($path  . '/logo.jpg', 180, 60, 15, 15, 'JPG');
 
-?>
+            $pdf->SetTitle("Listado de Logs", true);
+            $pdf->AddPage();
+
+            $listado = Log::obtenerTodos();
+
+            foreach ($listado as $log) {
+                $pdf->Cell(0, 1, "id: " . $log->id . " - " . "usuario: " . $log->usuario . " - " . "fecha: " . $log->fecha, 0, 1);
+            }
+
+            $path = dirname(__DIR__, 1);
+
+            $pdf->Output($path . '/ArchivosPDF/PDFLogs.pdf', 'F');
+
+            $payload = json_encode(array("mensaje" => "PDF GENERADO"));
+        } catch (Exception $ex) {
+            $payload = json_encode(array("error" => $ex->getMessage()));
+        }
+        $response->getBody()->write($payload);
+        return $response
+            ->withHeader('Content-Type', 'application/json');
+    }
+}

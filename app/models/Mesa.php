@@ -54,10 +54,10 @@ class Mesa
     public static function obtenerMesasEstados()
     {
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("SELECT idMesa, estado FROM mesas");
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT idMesa, codigo, estado FROM mesas");
         $consulta->execute();
 
-        return $consulta->fetchAll(PDO::FETCH_CLASS, 'Pedido');
+        return $consulta->fetchAll(PDO::FETCH_OBJ);
     }
 
 

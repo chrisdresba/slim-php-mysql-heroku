@@ -48,12 +48,15 @@ class Operacion
         $consulta->execute();
     }
 
-    public static function borrarOperacion($id)
+    public static function facturacionEntreFechas($desde,$hasta,$mesa)
     {
-        $objAccesoDato = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDato->prepararConsulta("DELETE FROM operaciones WHERE idOperacion=:id");
-        $consulta->bindValue(':id', $id, PDO::PARAM_INT);
+        $objAccesoDatos = AccesoDatos::obtenerInstancia();
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT importe, fechaCreacion FROM operaciones WHERE idMesa=:mesa AND fechaCreacion BETWEEN :desde and :hasta");
+        $consulta->bindValue(':desde', $desde,PDO::PARAM_STR);
+        $consulta->bindValue(':hasta', $hasta,PDO::PARAM_STR);
+        $consulta->bindValue(':mesa', $mesa,PDO::PARAM_STR);
         $consulta->execute();
-    }
 
+        return $consulta->fetchAll(PDO::FETCH_OBJ);
+    }
 }

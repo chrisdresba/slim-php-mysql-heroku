@@ -46,6 +46,7 @@ class Producto
         return $consulta->fetchAll(PDO::FETCH_CLASS, 'Producto');
     }
 
+
     public function modificarProducto()
     {
         $objAccesoDato = AccesoDatos::obtenerInstancia();
