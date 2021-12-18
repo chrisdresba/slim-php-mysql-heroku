@@ -24,6 +24,15 @@ class Consultas
         return $consulta->fetchAll(PDO::FETCH_OBJ);
     }
 
+    public static function mesaMenosUsada()
+    {
+        $objAccesoDatos = AccesoDatos::obtenerInstancia();
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT idMesa FROM operaciones GROUP BY idMesa ORDER BY count(*) ASC");
+        $consulta->execute();
+
+        return $consulta->fetchAll(PDO::FETCH_OBJ);
+    }
+
     //14
     public static function pedidosNoEntregadosATiempo()
     {
@@ -70,6 +79,15 @@ class Consultas
      {
          $objAccesoDatos = AccesoDatos::obtenerInstancia();
          $consulta = $objAccesoDatos->prepararConsulta("SELECT * FROM operaciones p GROUP BY p.idMesa ORDER BY p.importe ASC");
+         $consulta->execute();
+
+         return $consulta->fetchAll(PDO::FETCH_OBJ);
+     }
+
+     public static function mesaMayorFactura()
+     {
+         $objAccesoDatos = AccesoDatos::obtenerInstancia();
+         $consulta = $objAccesoDatos->prepararConsulta("SELECT * FROM operaciones p GROUP BY p.idMesa ORDER BY p.importe DESC");
          $consulta->execute();
 
          return $consulta->fetchAll(PDO::FETCH_OBJ);

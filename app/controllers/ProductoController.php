@@ -40,24 +40,31 @@ class ProductoController extends Producto
 
   public function TraerUno(Request $request, Response $response, $args)
   {
-    $_id = $args['id'];
-    $usuario = Producto::obtenerProducto($_id);
-    $payload = json_encode($usuario);
+    try {
 
+      $_id = $args['id'];
+      $producto = Producto::obtenerProducto($_id);
+      $payload = json_encode($producto);
+    } catch (Exception $ex) {
+      $payload = json_encode(array("mensaje" => "Se produjo un error " . $ex->getMessage()));
+    }
     $response->getBody()->write($payload);
     return $response
       ->withHeader('Content-Type', 'application/json');
   }
 
 
-  public function BorrarUno($request, $response, $args)
+  public function BorrarUno(Request $request, Response $response, $args)
   {
-    $_id = $args['id'];
+    try {
+      $_id = $args['id'];
 
-    Producto::borrarProducto($_id);
+      Producto::borrarProducto($_id);
 
-    $payload = json_encode(array("mensaje" => "Producto borrado con exito"));
-
+      $payload = json_encode(array("mensaje" => "Producto borrado con exito"));
+    } catch (Exception $ex) {
+      $payload = json_encode(array("mensaje" => "Se produjo un error " . $ex->getMessage()));
+    }
     $response->getBody()->write($payload);
     return $response
       ->withHeader('Content-Type', 'application/json');
@@ -93,6 +100,9 @@ class ProductoController extends Producto
       }
 
       fclose($fp);
+
+      Archivos::descargarArchivoCSV($path . '/ArchivosCSV/productos.csv','productos.csv');
+
     } catch (Exception $ex) {
       $response->getBody()->write(json_encode(array("mensaje" => "error")));
       return $response
@@ -109,10 +119,10 @@ class ProductoController extends Producto
   {
     $entidades = array();
     $path = dirname(__DIR__, 1);
-    $fp = fopen($path . '/ArchivosCSV/productos.csv', 'r');
 
+    if (file_exists($path . '/ArchivosCSV/productos.csv')) {
 
-    if ($fp) {
+      $fp = fopen($path . '/ArchivosCSV/productos.csv', 'r');
 
       while (($linea = fgetcsv($fp, 1000, ",")) !== FALSE) {
         $nueva = Producto::constructor($linea[0], $linea[1], $linea[2], $linea[3], $linea[4], $linea[5]);
@@ -121,14 +131,42 @@ class ProductoController extends Producto
       }
       fclose($fp);
 
-      var_dump($entidades);
+      $payload = ProductoController::CargarDesdeLista($entidades);
 
-      $response->getBody()->write(json_encode(array("CSV:" => "Se realizo la carga con exito")));
+      $response->getBody()->write($payload);
       return $response
         ->withHeader('Content-Type', 'application/json');
     }
     $response->getBody()->write(json_encode(array("mensaje" => "no se pudo leer el archivo")));
     return $response
       ->withHeader('Content-Type', 'application/json');
+  }
+
+  public static function CargarDesdeLista($lista)
+  {
+    try {
+      $auxiliar = 0;
+      if (count($lista) > 0) {
+
+        foreach ($lista as $item) {
+
+          if (Producto::obtenerProducto($item->idProducto) == false) {
+            $item->crearProductos();
+            $auxiliar++;
+          }
+        }
+        if ($auxiliar > 0) {
+          $payload = json_encode(array("mensaje" => "Producto cargado con exito"));
+        } else {
+          $payload = json_encode(array("mensaje" => "Los productos ya estaban registrados"));
+        }
+      } else {
+        $payload = json_encode(array("mensaje" => "No hay productos para cargar"));
+      }
+    } catch (Exception $ex) {
+      $payload = json_encode(array("mensaje" => "Se produjo un error " . $ex->getMessage()));
+    }
+
+    return $payload;
   }
 }

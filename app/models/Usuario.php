@@ -107,30 +107,14 @@ class Usuario
         $consulta->execute();
     }
 
-    public static function Login($usr) //modificar
-    {
 
-        $obj_usuarios = Usuario::obtenerTodos();
-
-        foreach ($obj_usuarios as $usuarioObj) {
-            if ($usr->email == $usuarioObj->email) {
-                if (password_verify($usr->clave, $usuarioObj->clave)) {
-                    return true;
-                }
-                if ($usr->clave ==  $usuarioObj->clave) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-    public static function constructor($id,$nombre,$apellido,$usuario,$clave,$tipo,$sector,$fechaAlta,$fechaBaja,$estado)
+    public static function constructor($id,$nombre,$apellido,$user,$clave,$tipo,$sector,$fechaAlta,$fechaBaja,$estado)
     {
         $usuario=new Usuario();
         $usuario->idUsuario=$id;
         $usuario->nombre=$nombre;
         $usuario->apellido=$apellido;
-        $usuario->usuario=$usuario;
+        $usuario->usuario=$user;
         $usuario->clave=$clave;
         $usuario->tipo=$tipo;
         $usuario->sector=$sector;
@@ -139,16 +123,7 @@ class Usuario
         $usuario->estado=$estado;
 
         return $usuario;
+        
     }
-      
 
-      // CODIGO = "TRABAJO , EJ: SOCIO"
-      public static function obtenerUsuarioCodigo($email){
-        $arrUsuario = Usuario::obtenerTodos();
-        foreach ($arrUsuario as $usuario) {
-          if ($usuario->email == $email) {
-            return $usuario->codigo;
-          }
-        }
-      }
 }

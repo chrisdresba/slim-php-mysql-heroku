@@ -60,6 +60,14 @@ class Mesa
         return $consulta->fetchAll(PDO::FETCH_OBJ);
     }
 
+    public static function borrarMesa($id)
+    {
+        $objAccesoDato = AccesoDatos::obtenerInstancia();
+        $consulta = $objAccesoDato->prepararConsulta("DELETE FROM mesas WHERE idMesa=:id");
+        $consulta->bindValue(':id', $id, PDO::PARAM_INT);
+        $consulta->execute();
+    }
+
 
     public static function constructor($id,$codigo,$estado,$fechaInicio,$fechaFinalizado)
     {

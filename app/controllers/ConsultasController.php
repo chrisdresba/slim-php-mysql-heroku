@@ -26,11 +26,12 @@ class ConsultasController
             ->withHeader('Content-Type', 'application/json');
     }
 
+
     public static function obtenerMesaMasUsada(Request $request, Response $response, $args)
     {
         try {
             $consulta = Consultas::mesaMasUsada();
-            $payload =  json_encode(array("La mesa mas usada es la " => $consulta[0]->idMesa));
+            $payload =  json_encode(array("MesaMasUsada" => $consulta[0]->idMesa));
         } catch (Exception $ex) {
             $payload = json_encode(array("error" => $ex->getMessage()));
         }
@@ -40,12 +41,26 @@ class ConsultasController
             ->withHeader('Content-Type', 'application/json');
     }
 
-    //14
+    public static function obtenerMesaMenosUsada(Request $request, Response $response, $args)
+    {
+        try {
+            $consulta = Consultas::mesaMenosUsada();
+            $payload =  json_encode(array("MesaMenosUsada" => $consulta[0]->idMesa));
+        } catch (Exception $ex) {
+            $payload = json_encode(array("error" => $ex->getMessage()));
+        }
+
+        $response->getBody()->write($payload);
+        return $response
+            ->withHeader('Content-Type', 'application/json');
+    }
+
+
     public static function obtenerPedidosNoEntregadosATiempo(Request $request, Response $response, $args)
     {
         try {
             $consulta = Consultas::pedidosNoEntregadosATiempo();
-            $payload =  json_encode(array("Lista Pedidos No Entregados a Tiempo " => $consulta));
+            $payload =  json_encode(array("ListaNoEntregadosATiempo" => $consulta));
         } catch (Exception $ex) {
             $payload = json_encode(array("error" => $ex->getMessage()));
         }
@@ -55,12 +70,12 @@ class ConsultasController
             ->withHeader('Content-Type', 'application/json');
     }
 
-    //15
+
     public static function obtenerPedidosEntregadosATiempo(Request $request, Response $response, $args)
     {
         try {
             $consulta = Consultas::pedidosEntregadosATiempo();
-            $payload =  json_encode(array("Lista Pedidos Entregados a Tiempo " => $consulta));
+            $payload =  json_encode(array("ListaEntregadosATiempo" => $consulta));
         } catch (Exception $ex) {
             $payload = json_encode(array("error" => $ex->getMessage()));
         }
@@ -71,7 +86,6 @@ class ConsultasController
     }
 
 
-    //17
     public static function obtenerOperacionesPorSector(Request $request, Response $response, $args)
     {
         try {
@@ -102,7 +116,7 @@ class ConsultasController
                 }
             }
 
-            $payload = json_encode(array("Cantidad Tragos" => $acumTragos, "Cantidad Choperas" => $acumChoperas, "Cantidad Cocina" => $acumCocina, "Cantidad Candy Bar" => $acumCandy));
+            $payload = json_encode(array("Tragos" => $acumTragos, "Choperas" => $acumChoperas, "Cocina" => $acumCocina, "CandyBar" => $acumCandy));
 
             $response->getBody()->write($payload);
             return $response
@@ -117,7 +131,6 @@ class ConsultasController
             ->withHeader('Content-Type', 'application/json');
     }
 
-    //18
 
     public static function obtenerOperacionesPorEmpleado(Request $request, Response $response, $args)
     {
@@ -146,7 +159,7 @@ class ConsultasController
 
                         if (count($arrayBartender) > 0) {
                             foreach ($arrayBartender as $usuario) {
-                                if ($usuario['usuario'] == $accion->usuario) {
+                                if ($usuario['usuario'] == $accion[0]->usuario) {
                                     $auxiliar = false;
                                 }
                             }
@@ -163,7 +176,7 @@ class ConsultasController
                         $accion = Procedimientos::obtenerProcedimiento($sector->usuario);
                         if (count($arrayCerveceros) > 0) {
                             foreach ($arrayCerveceros as $usuario) {
-                                if ($usuario['usuario'] == $sector->usuario) {
+                                if ($usuario['usuario'] == $accion[0]->usuario) {
                                     $auxiliar = false;
                                 }
                             }
@@ -179,7 +192,7 @@ class ConsultasController
                         $accion = Procedimientos::obtenerProcedimiento($sector->usuario);
                         if (count($arrayCocineros) > 0) {
                             foreach ($arrayCocineros as $usuario) {
-                                if ($usuario['usuario'] == $sector->usuario) {
+                                if ($usuario['usuario'] == $accion[0]->usuario) { 
                                     $auxiliar = false;
                                 }
                             }
@@ -196,7 +209,7 @@ class ConsultasController
                         $accion = Procedimientos::obtenerProcedimiento($sector->usuario);
                         if (count($arrayCandy) > 0) {
                             foreach ($arrayCandy as $usuario) {
-                                if ($usuario['usuario'] == $sector->usuario) {
+                                if ($usuario['usuario'] == $accion[0]->usuario) { 
                                     $auxiliar = false;
                                 }
                             }
@@ -209,7 +222,7 @@ class ConsultasController
                 }
             }
 
-            $payload = json_encode(array("Cantidad Tragos" => $acumTragos, "Listado Tragos" => $arrayBartender, "Cantidad Choperas" => $acumChoperas, "Listado Cerveceros" => $arrayCerveceros, "Cantidad Cocina" => $acumCocina, "Listado Cocina" => $arrayCocineros, "Cantidad Candy Bar" => $acumCandy, "Listado Candy" => $arrayCandy));
+            $payload = json_encode(array("Tragos" => $acumTragos, "ListadoTragos" => $arrayBartender, "Choperas" => $acumChoperas, "ListadoCerveceros" => $arrayCerveceros, "Cocina" => $acumCocina, "ListadoCocina" => $arrayCocineros, "CandyBar" => $acumCandy, "ListadoCandy" => $arrayCandy));
 
             $response->getBody()->write($payload);
             return $response
@@ -226,14 +239,12 @@ class ConsultasController
 
 
 
-    //19
-
     public static function obtenerProductoMasVendido(Request $request, Response $response, $args)
     {
         try {
             $array = Consultas::productoMasVendido();
             $producto = Producto::obtenerProducto($array[0]->idProducto);
-            $payload = json_encode(array("Producto mas vendido" => $producto, "Lista" => $array));
+            $payload = json_encode(array("ProductoMasVendido" => $producto, "Lista" => $array));
         } catch (Exception $ex) {
             $payload = json_encode(array("error" => $ex->getMessage()));
         }
@@ -244,7 +255,7 @@ class ConsultasController
             ->withHeader('Content-Type', 'application/json');
     }
 
-    //20
+ 
     public static function obtenerLogsEmpleado(Request $request, Response $response, $args)
     {
 
@@ -255,7 +266,7 @@ class ConsultasController
             if (isset($parametros['empleado'])) {
                 $usuario = $parametros['empleado'];
                 $array = Log::obtenerLog($usuario);
-                $payload = json_encode(array("Conexiones del empleado" => $array));
+                $payload = json_encode(array("Conexiones" => $array));
             }
         } catch (Exception $ex) {
             $payload = json_encode(array("mensaje" => "Se produjo un error " . $ex->getMessage()));
@@ -265,12 +276,27 @@ class ConsultasController
         return $response;
     }
 
-    //21
+
     public static function obtenerMenorFactura(Request $request, Response $response, $args)
     {
         try {
             $array = Consultas::mesaMenorFactura();
-            $payload = json_encode(array("Menos facturo" => $array));
+            $payload = json_encode(array("MenosFacturado" => $array));
+        } catch (Exception $ex) {
+            $payload = json_encode(array("error" => $ex->getMessage()));
+        }
+
+
+        $response->getBody()->write($payload);
+        return $response
+            ->withHeader('Content-Type', 'application/json');
+    }
+
+    public static function obtenerMayorFactura(Request $request, Response $response, $args)
+    {
+        try {
+            $array = Consultas::mesaMayorFactura();
+            $payload = json_encode(array("MasFacturado" => $array));
         } catch (Exception $ex) {
             $payload = json_encode(array("error" => $ex->getMessage()));
         }
@@ -283,7 +309,6 @@ class ConsultasController
 
 
 
-    //22
     public static function obtenerFacturacionEntreFechas(Request $request, Response $response, $args)
     {
 
@@ -296,7 +321,7 @@ class ConsultasController
                 $desde = $parametros['desde'];
                 $hasta = $parametros['hasta'];
                 $array = Operacion::facturacionEntreFechas($desde, $hasta, $mesa);
-                $payload = json_encode(array("Facturaciones Mesa $mesa " => $array));
+                $payload = json_encode(array("FacturacionMesa$mesa" => $array));
             }
         } catch (Exception $ex) {
             $payload = json_encode(array("mensaje" => "Se produjo un error " . $ex->getMessage()));

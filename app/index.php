@@ -40,25 +40,10 @@ $app->addErrorMiddleware(true, true, true);
 // Add parse body
 $app->addBodyParsingMiddleware();
 
-$capsule = new Capsule;
-$capsule->addConnection([
-    'driver'    => 'mysql',
-    'host'      => $_ENV['MYSQL_HOST'],
-    'database'  => $_ENV['MYSQL_DB'],
-    'username'  => $_ENV['MYSQL_USER'],
-    'password'  => $_ENV['MYSQL_PASS'],
-    'charset'   => 'utf8',
-    'collation' => 'utf8_unicode_ci',
-    'prefix'    => '',
-]);
-
-$capsule->setAsGlobal();
-$capsule->bootEloquent();
-
 // Routes
 
 $app->group('/login', function (RouteCollectorProxy $group) {
-  $group->post('[/]', \UsuarioController::class . ':Loguear');
+  $group->post('[/]', \UsuarioController::class . ':Logueo');
 });
 
 $app->group('/usuarios', function (RouteCollectorProxy $group) {
@@ -82,9 +67,12 @@ $app->group('/mesas', function (RouteCollectorProxy $group) {
 $app->group('/pedidos', function (RouteCollectorProxy $group) {
   $group->get('[/]', \PedidoController::class . ':TraerTodos')->add(\MWAutentificar::class . ':VerificarTipoSocio');
   $group->get('/listar', \PedidoController::class . ':listarPedidos');
+  $group->post('/traer', \PedidoController::class . ':TraerPedido')->add(\MWAutentificar::class . ':VerificarTipoMozo');
+  $group->get('/pendientes', \PedidoController::class . ':listarPedidosPendientes');
+  $group->get('/enpreparacion', \PedidoController::class . ':listarPedidosEnPreparacion');
+  $group->get('/cancelados', \PedidoController::class . ':TraerCancelados');
   $group->post('[/]', \PedidoController::class . ':CargarUno')->add(\MWAutentificar::class . ':VerificarTipoMozo');
   $group->post('/imagen', \PedidoController::class . ':agregarImagenPedido')->add(\MWAutentificar::class . ':VerificarTipoMozo');
-  $group->get('/descargar', \PedidoController::class . ':DescargarCSV')->add(\MWAutentificar::class . ':VerificarTipoSocio');
   $group->get('/socios', \PedidoController::class . ':listadoPedidoDemora')->add(\MWAutentificar::class . ':VerificarTipoSocio');
   $group->get('/demoras', \Pedido::class . ':pedidosFueraDeHora')->add(\MWAutentificar::class . ':VerificarTipoSocio');
   $group->put('/modificar', \PedidoController::class . ':modificarEstadoPedido');
@@ -113,6 +101,7 @@ $app->group('/encuesta', function (RouteCollectorProxy $group) {
 $app->group('/consultas', function (RouteCollectorProxy $group) {
   $group->get('/mejorescomentarios', \ConsultasController::class . ':obtenerMejoresComentario');
   $group->get('/mesamasusada', \ConsultasController::class . ':obtenerMesaMasUsada');
+  $group->get('/mesamenosusada', \ConsultasController::class . ':obtenerMesaMenosUsada');
   $group->get('/pedidosfueradetiempo', \ConsultasController::class . ':obtenerPedidosNoEntregadosATiempo');
   $group->get('/pedidosatiempo', \ConsultasController::class . ':obtenerPedidosEntregadosATiempo');
   $group->get('/operacionesporsector', \ConsultasController::class . ':obtenerOperacionesPorSector');
@@ -120,6 +109,7 @@ $app->group('/consultas', function (RouteCollectorProxy $group) {
   $group->get('/productomasvendido', \ConsultasController::class . ':obtenerProductoMasVendido');
   $group->post('/logsempleado', \ConsultasController::class . ':obtenerLogsEmpleado');
   $group->get('/menorfactura', \ConsultasController::class . ':obtenerMenorFactura');
+  $group->get('/mayorfactura', \ConsultasController::class . ':obtenerMayorFactura');
   $group->post('/facturacionporfecha', \ConsultasController::class . ':obtenerFacturacionEntreFechas');
 })->add(\MWAutentificar::class . ':VerificarTipoSocio');
 

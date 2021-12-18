@@ -77,6 +77,27 @@ class PedidoController extends Pedido
       ->withHeader('Content-Type', 'application/json');
   }
 
+  public function TraerCancelados(Request $request, Response $response, $args)
+  {
+    try {
+
+      $lista = Pedido::obtenerCancelados();
+
+      if (count($lista) > 0) {
+        $payload = json_encode(array("Cancelados" => $lista));
+      } else {
+        $payload = json_encode(array("Cancelados" => "No se encontro ningun pedido cancelado"));
+      }
+    } catch (Exception $ex) {
+      $payload = json_encode(array("mensaje" => "Se produjo un error " . $ex->getMessage()));
+    }
+
+    $response->getBody()->write($payload);
+    return $response
+      ->withHeader('Content-Type', 'application/json');
+  }
+
+
 
   public function CambiarEstadoPedido(Request $request, Response $response, $args)
   {
@@ -105,49 +126,26 @@ class PedidoController extends Pedido
       ->withHeader('Content-Type', 'application/json');
   }
 
-  public function DescargarCSV(Request $request, Response $response, $args)
-  {
-
-    $pedidos = Pedido::obtenerTodos();
-    $path = dirname(__DIR__, 1);
-
-    try {
-      $fp = fopen($path . '/ArchivosCSV/pedidos.csv', 'w+');
-
-      foreach ($pedidos as $pedido) {
-        $array = (array)$pedido;
-        fputcsv($fp, $array);
-      }
-
-      fclose($fp);
-    } catch (Exception $ex) {
-      $response->getBody()->write(json_encode(array("mensaje" => "error")));
-      return $response
-        ->withHeader('Content-Type', 'application/json');
-    }
-
-    $response->getBody()->write(json_encode(array("mensaje" => "Pedidos descargados en CSV")));
-
-    return $response
-      ->withHeader('Content-Type', 'application/json');
-  }
 
   public function agregarImagenPedido(Request $request, Response $response, $args)
   {
 
-    $codigo = $_POST['codigo'];
-    $imagen = $_FILES['imagen'];
+    try {
+      $codigo = $_POST['codigo'];
+      $imagen = $_FILES['imagen'];
 
-    $dir_subida = './ImagenesPedidos/';
+      $dir_subida = './ImagenesPedidos/';
 
-    $pedido = new Pedido();
-    $pedido->codigoPedido = $codigo;
-    $pedido->foto = $dir_subida . 'pedido ' . $codigo . '.jpg';
-    $pedido->fotoPedido($codigo);
-    Pedido::ImagenAltaPedidos($imagen, $codigo);
+      $pedido = new Pedido();
+      $pedido->codigoPedido = $codigo;
+      $pedido->foto = $dir_subida . 'pedido ' . $codigo . '.jpg';
+      $pedido->fotoPedido($codigo);
+      Pedido::ImagenAltaPedidos($imagen, $codigo);
 
-
-    $payload = json_encode(array("mensaje" => "Se agrego la foto al pedido"));
+      $payload = json_encode(array("mensaje" => "Se agrego la foto al pedido"));
+    } catch (Exception $ex) {
+      $payload = json_encode(array("mensaje" => "Se produjo un error " . $ex->getMessage()));
+    }
 
 
     $response->getBody()->write($payload);
@@ -162,102 +160,117 @@ class PedidoController extends Pedido
 
     $parametros = json_decode(file_get_contents("php://input"), true);
 
-    $header = $request->getHeaderLine('Authorization');
-    $token = trim(explode("Bearer", $header)[1]);
+    try {
 
-    $usuario = AutentificadorJWT::ObtenerData($token);
+      $header = $request->getHeaderLine('Authorization');
+      $token = trim(explode("Bearer", $header)[1]);
 
-    $codigoPedido = $parametros['codigo'];
-    $estado = $parametros['estado'];
-    $producto = $parametros['producto'];
-    $tiempo = $parametros['tiempo'];
+      $usuario = AutentificadorJWT::ObtenerData($token);
 
-    $pedido = new Pedido();
-    $pedido->estado = $estado;
-    $pedido->idProducto = $producto;
-    $pedido->codigoPedido = $codigoPedido;
+      $codigoPedido = $parametros['codigo'];
+      $estado = $parametros['estado'];
+      $producto = $parametros['producto'];
 
-    $date = new DateTime();
-    $tiempo = $date->modify('+' . $tiempo . ' minute');
-    $demora = $tiempo->format('H:i:s');
+      if (isset($parametros['tiempo'])) {
+        $tiempo = $parametros['tiempo'];
+      } else {
+        $tiempo = 0;
+      }
 
-    $acciones = new Procedimientos();
+      $pedido = new Pedido();
+      $pedido->estado = $estado;
+      $pedido->idProducto = $producto;
+      $pedido->codigoPedido = $codigoPedido;
 
-    switch ($usuario->tipo) {
-      case 'Bartender':
+      $date = new DateTime();
+      $tiempo = $date->modify('+' . $tiempo . ' minute');
+      $demora = $tiempo->format('H:i:s');
 
-        if ($estado == "listo para servir") {
-          $horaFinalizado = new DateTime();
-          $pedido->horaFinalizado = $horaFinalizado->format('H:i:s');
-          $pedido->asignarHoraFinalizado($codigoPedido);
-        } else {
-          $pedido->demora = $demora;
-          $pedido->modificarEstado($codigoPedido);
-          $pedido->modificarDemora($codigoPedido);
-        }
+      $acciones = new Procedimientos();
+
+      switch ($usuario->tipo) {
+        case 'Bartender':
+
+          if ($estado == "listo para servir") {
+            $horaFinalizado = new DateTime();
+            $pedido->horaFinalizado = $horaFinalizado->format('H:i:s');
+            $pedido->asignarHoraFinalizado($codigoPedido);
+            $pedido->modificarEstado($codigoPedido);
+          } else {
+            $pedido->demora = $demora;
+            $pedido->modificarEstado($codigoPedido);
+            $pedido->modificarDemora($codigoPedido);
+          }
 
 
-        if ($estado == "en preparacion") {
-          $acciones->usuario = $usuario->usuario;
-          $acciones->seccion = "Tragos";
-          $fecha = new DateTime();
-          $acciones->fecha = $fecha->format("Y-m-d H:i:s");
-          $acciones->producto = intval($producto);
-          $acciones->crearProcedimiento();
-        }
+          if ($estado == "en preparacion") {
+            $acciones->usuario = $usuario->usuario;
+            $acciones->seccion = "Tragos";
+            $fecha = new DateTime();
+            $acciones->fecha = $fecha->format("Y-m-d H:i:s");
+            $acciones->producto = intval($producto);
+            $acciones->crearProcedimiento();
+          }
 
-        $payload = json_encode(array("mensaje" => "modificado con exito pedido por Bartender"));
-        break;
-      case 'Cocinero':
+          $payload = json_encode(array("mensaje" => "modificado con exito pedido por Bartender"));
+          break;
+        case 'Cocinero':
 
-        if ($estado == "listo para servir") {
-          $horaFinalizado = new DateTime();
-          $pedido->horaFinalizado = $horaFinalizado->format('H:i:s');
-          $pedido->asignarHoraFinalizado($codigoPedido);
-        } else {
-          $pedido->demora = $demora;
-          $pedido->modificarEstado($codigoPedido);
-          $pedido->modificarDemora($codigoPedido);
-        }
+          if ($estado == "listo para servir") {
+            $horaFinalizado = new DateTime();
+            $pedido->horaFinalizado = $horaFinalizado->format('H:i:s');
+            $pedido->asignarHoraFinalizado($codigoPedido);
+            $pedido->modificarEstado($codigoPedido);
+          } else {
+            $pedido->demora = $demora;
+            $pedido->modificarEstado($codigoPedido);
+            $pedido->modificarDemora($codigoPedido);
+          }
 
-        if ($estado == "en preparacion") {
-          $acciones->usuario = $usuario->usuario;
-          $acciones->seccion = "Cocina";
-          $fecha = new DateTime();
-          $acciones->fecha = $fecha->format("Y-m-d H:i:s");
-          $acciones->producto = intval($producto);
-          $acciones->crearProcedimiento();
-        }
+          if ($estado == "en preparacion") {
+            $acciones->usuario = $usuario->usuario;
+            $acciones->seccion = "Cocina";
+            $fecha = new DateTime();
+            $acciones->fecha = $fecha->format("Y-m-d H:i:s");
+            $acciones->producto = intval($producto);
+            $acciones->crearProcedimiento();
+          }
 
-        $payload = json_encode(array("mensaje" => "modificado con exito pedido por Cocinero"));
-        break;
-      case 'Cerveceros':
+          $payload = json_encode(array("mensaje" => "modificado con exito pedido por Cocinero"));
+          break;
+        case 'Cerveceros':
 
-        if ($estado == "listo para servir") {
-          $horaFinalizado = new DateTime();
-          $pedido->horaFinalizado = $horaFinalizado->format('H:i:s');
-          $pedido->asignarHoraFinalizado($codigoPedido);
-        } else {
-          $pedido->demora = $demora;
-          $pedido->modificarEstado($codigoPedido);
-          $pedido->modificarDemora($codigoPedido);
-        }
+          if ($estado == "listo para servir") {
+            $horaFinalizado = new DateTime();
+            $pedido->horaFinalizado = $horaFinalizado->format('H:i:s');
+            $pedido->asignarHoraFinalizado($codigoPedido);
+            $pedido->modificarEstado($codigoPedido);
+          } else {
+            $pedido->demora = $demora;
+            $pedido->modificarEstado($codigoPedido);
+            $pedido->modificarDemora($codigoPedido);
+          }
 
-        if ($estado == "en preparacion") {
-          $acciones->usuario = $usuario->usuario;
-          $acciones->seccion = "Choperas";
-          $fecha = new DateTime();
-          $acciones->fecha = $fecha->format("Y-m-d H:i:s");
-          $acciones->producto = intval($producto);
-          $acciones->crearProcedimiento();
-        }
+          if ($estado == "en preparacion") {
+            $acciones->usuario = $usuario->usuario;
+            $acciones->seccion = "Choperas";
+            $fecha = new DateTime();
+            $acciones->fecha = $fecha->format("Y-m-d H:i:s");
+            $acciones->producto = intval($producto);
+            $acciones->crearProcedimiento();
+          }
 
-        $payload = json_encode(array("mensaje" => "modificado con exito pedido por Cerveceros"));
-        break;
+          $payload = json_encode(array("mensaje" => "modificado con exito pedido por Cerveceros"));
+          break;
 
-      default:
-        $payload = json_encode(array("mensaje" => "No tenes autorizado modificar estado"));
-        break;
+        default:
+          $payload = json_encode(array("mensaje" => "No tenes autorizado modificar estado"));
+          break;
+      }
+    } catch (Exception $ex) {
+      $response->getBody()->write(json_encode(array("mensaje" => "error")));
+      return $response
+        ->withHeader('Content-Type', 'application/json');
     }
     $response->getBody()->write($payload);
     return $response
@@ -268,29 +281,99 @@ class PedidoController extends Pedido
   public function listarPedidos(Request $request, Response $response, $args)
   {
 
-    $header = $request->getHeaderLine('Authorization');
-    $token = trim(explode("Bearer", $header)[1]);
-    $usuario = AutentificadorJWT::ObtenerData($token);
+    try {
+      $header = $request->getHeaderLine('Authorization');
+      $token = trim(explode("Bearer", $header)[1]);
+      $usuario = AutentificadorJWT::ObtenerData($token);
 
-    switch ($usuario->tipo) {
-      case 'Socio':
-        $array = Pedido::obtenerTodos();
-        break;
-      case 'Mozo':
-        $array = Pedido::obtenerTodos();
-        break;
-      case 'Bartender':
-        $array = Pedido::listarPedidoBartender();
-        break;
-      case 'Cocinero':
-        $array = Pedido::listarPedidoCocinero();
-        break;
-      case 'Cerveceros':
-        $array = Pedido::listarPedidoCervecero();
-        break;
+      switch ($usuario->tipo) {
+        case 'Socio':
+          $array = Pedido::obtenerTodos();
+          break;
+        case 'Mozo':
+          $array = Pedido::obtenerTodos();
+          break;
+        case 'Bartender':
+          $array = Pedido::listarPedidoPersonal("Tragos");
+          break;
+        case 'Cocinero':
+          $array = Pedido::listarPedidoPersonal("Cocina");
+          break;
+        case 'Cerveceros':
+          $array = Pedido::listarPedidoPersonal("Choperas");
+          break;
+      }
+    } catch (Exception $ex) {
+      $response->getBody()->write(json_encode(array("mensaje" => "error")));
+      return $response
+        ->withHeader('Content-Type', 'application/json');
     }
 
-    $payload = json_encode(array("LISTA:" => $array));
+    $payload = json_encode(array("Lista" => $array));
+
+    $response->getBody()->write($payload);
+    return $response
+      ->withHeader('Content-Type', 'application/json');
+  }
+
+  public function listarPedidosPendientes(Request $request, Response $response, $args)
+  {
+
+    try {
+      $header = $request->getHeaderLine('Authorization');
+      $token = trim(explode("Bearer", $header)[1]);
+      $usuario = AutentificadorJWT::ObtenerData($token);
+
+      switch ($usuario->tipo) {
+        case 'Bartender':
+          $array = Pedido::listarPedidoPersonalPendiente("Tragos");
+          break;
+        case 'Cocinero':
+          $array = Pedido::listarPedidoPersonalPendiente("Cocina");
+          break;
+        case 'Cerveceros':
+          $array = Pedido::listarPedidoPersonalPendiente("Choperas");
+          break;
+      }
+    } catch (Exception $ex) {
+      $response->getBody()->write(json_encode(array("mensaje" => "error")));
+      return $response
+        ->withHeader('Content-Type', 'application/json');
+    }
+
+    $payload = json_encode(array("Lista" => $array));
+
+    $response->getBody()->write($payload);
+    return $response
+      ->withHeader('Content-Type', 'application/json');
+  }
+
+  public function listarPedidosEnPreparacion(Request $request, Response $response, $args)
+  {
+
+    try {
+      $header = $request->getHeaderLine('Authorization');
+      $token = trim(explode("Bearer", $header)[1]);
+      $usuario = AutentificadorJWT::ObtenerData($token);
+
+      switch ($usuario->tipo) {
+        case 'Bartender':
+          $array = Pedido::listarPedidoPersonalEnPreparacion("Tragos");
+          break;
+        case 'Cocinero':
+          $array = Pedido::listarPedidoPersonalEnPreparacion("Cocina");
+          break;
+        case 'Cerveceros':
+          $array = Pedido::listarPedidoPersonalEnPreparacion("Choperas");
+          break;
+      }
+    } catch (Exception $ex) {
+      $response->getBody()->write(json_encode(array("mensaje" => "error")));
+      return $response
+        ->withHeader('Content-Type', 'application/json');
+    }
+
+    $payload = json_encode(array("Lista" => $array));
 
     $response->getBody()->write($payload);
     return $response
@@ -320,7 +403,7 @@ class PedidoController extends Pedido
         }
       }
 
-      $payload = json_encode(array("El pedido estara listo a :" => $tiempo));
+      $payload = json_encode(array("TiempoDeEntrega" => $tiempo));
 
       $response->getBody()->write($payload);
       return $response
@@ -380,13 +463,13 @@ class PedidoController extends Pedido
       $operacion->fecha = $fecha->format('Y-m-d');
       $operacion->crearOperacion();
 
-      $payload = json_encode(array("Importe:" => $precioFinal));
+      $payload = json_encode(array("Importe" => $precioFinal));
 
       $response->getBody()->write($payload);
       return $response
         ->withHeader('Content-Type', 'application/json');
     } else {
-      $payload = json_encode(array("mensaje:" => "faltan ingresar datos"));
+      $payload = json_encode(array("mensaje" => "faltan ingresar datos"));
 
       $response->getBody()->write($payload);
       return $response
@@ -397,21 +480,24 @@ class PedidoController extends Pedido
 
   public function pedidosFueraDeHora(Request $request, Response $response, $args)
   {
+    try {
+      $array = Pedido::obtenerTodos();
+      $listado = array();
 
-    $array = Pedido::obtenerTodos();
-    $listado = array();
+      foreach ($array as $pedido) {
 
-    foreach ($array as $pedido) {
+        $segundosEspera = strtotime($pedido->tiempoEspera);
+        $segundosEntrega = strtotime($pedido->horaFinalizado);
 
-      $segundosEspera = strtotime($pedido->tiempoEspera);
-      $segundosEntrega = strtotime($pedido->horaFinalizado);
-
-      if ($segundosEspera > $segundosEntrega) {
-        array_push($listado, $pedido->idPedido);
+        if ($segundosEspera > $segundosEntrega) {
+          array_push($listado, $pedido->idPedido);
+        }
       }
-    }
 
-    $payload = json_encode(array("Listado :" => $listado));
+      $payload = json_encode(array("Listado" => $listado));
+    } catch (Exception $ex) {
+      $payload = json_encode(array("mensaje" => "Se produjo un error " . $ex->getMessage()));
+    }
 
     $response->getBody()->write($payload);
     return $response

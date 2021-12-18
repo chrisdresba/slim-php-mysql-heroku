@@ -66,9 +66,12 @@ class Log extends TCPDF
 
             $path = dirname(__DIR__, 1);
 
+            //Save File
             $pdf->Output($path . '/ArchivosPDF/PDFLogs.pdf', 'F');
 
-            $payload = json_encode(array("mensaje" => "PDF GENERADO"));
+            //Download File
+            Archivos::descargarArchivo($path . '/ArchivosPDF/PDFLogs.pdf','PDFLogs.pdf');
+          
         } catch (Exception $ex) {
             $payload = json_encode(array("error" => $ex->getMessage()));
         }
@@ -76,4 +79,5 @@ class Log extends TCPDF
         return $response
             ->withHeader('Content-Type', 'application/json');
     }
+
 }

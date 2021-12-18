@@ -48,11 +48,11 @@ class Pedido
     public static function obtenerPorCodigo($codigo)
     {
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("SELECT * FROM pedidos WHERE codigoPedido=:codigo");
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT idProducto, estado FROM pedidos WHERE codigoPedido=:codigo");
         $consulta->bindValue(':codigo', $codigo, PDO::PARAM_STR);
         $consulta->execute();
 
-        return $consulta->fetchAll(PDO::FETCH_CLASS, 'Pedido');
+        return $consulta->fetchAll(PDO::FETCH_OBJ);
     }
 
     public static function obtenerPorEstado($estado)
@@ -60,6 +60,15 @@ class Pedido
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
         $consulta = $objAccesoDatos->prepararConsulta("SELECT * FROM pedidos WHERE estado=:estado");
         $consulta->bindValue(':estado', $estado, PDO::PARAM_STR);
+        $consulta->execute();
+
+        return $consulta->fetchAll(PDO::FETCH_CLASS, 'Pedido');
+    }
+
+    public static function obtenerCancelados()
+    {
+        $objAccesoDatos = AccesoDatos::obtenerInstancia();
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT * FROM pedidos WHERE estado='cancelado'");
         $consulta->execute();
 
         return $consulta->fetchAll(PDO::FETCH_CLASS, 'Pedido');
@@ -76,31 +85,12 @@ class Pedido
         return $consulta->fetchAll(PDO::FETCH_CLASS, 'Pedido');
     }
 
-    public function modificarPedido()
-    {
-        $objAccesoDato = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDato->prepararConsulta("UPDATE pedidos SET (idUsuario=:usuario, idMesa=:mesa, idProducto=:producto, unidades=:unidades, nombreCliente=:nombre, horaInicio=:horaInicio, horaFinalizado=:horaFinalizado, estado=:estado, fecha=:fecha, foto=:foto, codigoPedido=:codigo) WHERE idPedido=:id");
-        $consulta->bindValue(':usuario', $this->idUsuario, PDO::PARAM_INT);
-        $consulta->bindValue(':producto', $this->idProducto, PDO::PARAM_STR);
-        $consulta->bindValue(':mesa', $this->idMesa, PDO::PARAM_STR);
-        $consulta->bindValue(':codigo', $this->codigoPedido, PDO::PARAM_STR);
-        $consulta->bindValue(':unidades', $this->unidades, PDO::PARAM_INT);
-        $consulta->bindValue(':nombre', $this->nombreCliente, PDO::PARAM_STR);
-        $consulta->bindValue(':horaInicio', $this->horaInicio, PDO::PARAM_STR);
-        $consulta->bindValue(':horaFinalizado', $this->horaFinalizado, PDO::PARAM_STR);
-        $consulta->bindValue(':fecha', $this->fecha, PDO::PARAM_STR);
-        $consulta->bindValue(':estado', $this->estado, PDO::PARAM_STR);
-        $consulta->bindValue(':foto', $this->foto, PDO::PARAM_STR);
-        $consulta->bindValue(':id', $this->id, PDO::PARAM_INT);
-        $consulta->execute();
-    
-    }
-
     public function modificarEstado($codigo)
     {
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("UPDATE pedidos SET estado=:estado WHERE codigoPedido=:codigo");
+        $consulta = $objAccesoDatos->prepararConsulta("UPDATE pedidos SET estado=:estado WHERE codigoPedido=:codigo AND idProducto=:producto");
         $consulta->bindValue(':estado', $this->estado, PDO::PARAM_STR);
+        $consulta->bindValue(':producto', $this->idProducto, PDO::PARAM_STR);
         $consulta->bindValue(':codigo', $codigo, PDO::PARAM_STR);
         $consulta->execute();
 
@@ -160,31 +150,34 @@ class Pedido
       }
   }
 
-  public static function listarPedidoCocinero()
+  public static function listarPedidoPersonal($seccion)
   {
       $objAccesoDatos = AccesoDatos::obtenerInstancia();
-      $consulta = $objAccesoDatos->prepararConsulta('SELECT * FROM pedidos U INNER JOIN productos P ON  U.idProducto = P.idProducto' .
-      ' WHERE seccion = "Cocina" ');
+      $consulta = $objAccesoDatos->prepararConsulta("SELECT * FROM pedidos U INNER JOIN productos P ON  U.idProducto = P.idProducto
+       WHERE P.seccion = :seccion ");
+      $consulta->bindValue(':seccion', $seccion, PDO::PARAM_STR);
       $consulta->execute();
 
       return $consulta->fetchAll(PDO::FETCH_OBJ);
   }
 
-  public static function listarPedidoBartender()
+  public static function listarPedidoPersonalPendiente($seccion)
   {
       $objAccesoDatos = AccesoDatos::obtenerInstancia();
-      $consulta = $objAccesoDatos->prepararConsulta('SELECT * FROM pedidos U INNER JOIN productos P' .' ON  U.idProducto = P.idProducto' .
-      ' WHERE seccion = "Tragos" ');
+      $consulta = $objAccesoDatos->prepararConsulta("SELECT * FROM pedidos U INNER JOIN productos P ON  U.idProducto = P.idProducto
+       WHERE P.seccion = :seccion AND U.estado = 'pendiente'");
+      $consulta->bindValue(':seccion', $seccion, PDO::PARAM_STR);
       $consulta->execute();
 
       return $consulta->fetchAll(PDO::FETCH_OBJ);
   }
 
-  public static function listarPedidoCervecero()
+  public static function listarPedidoPersonalEnPreparacion($seccion)
   {
       $objAccesoDatos = AccesoDatos::obtenerInstancia();
-      $consulta = $objAccesoDatos->prepararConsulta('SELECT * FROM pedidos U INNER JOIN productos P' .' ON  U.idProducto = P.idProducto' .
-      ' WHERE seccion = "Choperas" ');
+      $consulta = $objAccesoDatos->prepararConsulta("SELECT * FROM pedidos U INNER JOIN productos P ON  U.idProducto = P.idProducto
+       WHERE P.seccion = :seccion AND U.estado = 'en preparacion'");
+      $consulta->bindValue(':seccion', $seccion, PDO::PARAM_STR);
       $consulta->execute();
 
       return $consulta->fetchAll(PDO::FETCH_OBJ);
